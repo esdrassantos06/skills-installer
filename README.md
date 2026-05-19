@@ -18,7 +18,7 @@ The skills CLI installs one source per invocation and prompts for confirmation. 
 ## Install (from source)
 
 ```bash
-git clone https://github.com/YOUR-GH-USERNAME/skills-installer.git
+git clone https://github.com/esdrassantos06/skills-installer.git
 cd skills-installer
 npm install
 npm run dev          # launches Electron in dev mode
@@ -32,7 +32,7 @@ npm run dist:win     # .exe NSIS, x64
 npm run dist:all     # both
 ```
 
-Pre-built releases ship via [GitHub Releases](https://github.com/YOUR-GH-USERNAME/skills-installer/releases) on tagged versions.
+Pre-built releases ship via [GitHub Releases](https://github.com/esdrassantos06/skills-installer/releases) on tagged versions.
 
 ## Usage
 

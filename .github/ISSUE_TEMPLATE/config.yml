@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/YOUR-GH-USERNAME/skills-installer/security/advisories/new
+    url: https://github.com/esdrassantos06/skills-installer/security/advisories/new
     about: Report privately via GitHub Security Advisories. Do not file a public issue.
   - name: Question or discussion
-    url: https://github.com/YOUR-GH-USERNAME/skills-installer/discussions
+    url: https://github.com/esdrassantos06/skills-installer/discussions
     about: For questions, ideas, or general discussion.

@@ -5,7 +5,7 @@ Thanks for taking the time. A few things before you open a PR.
 ## Quick start
 
 ```bash
-git clone https://github.com/YOUR-GH-USERNAME/skills-installer.git
+git clone https://github.com/esdrassantos06/skills-installer.git
 cd skills-installer
 npm install
 npm test          # should pass
@@ -55,7 +55,7 @@ The parser, the search reducer, and the skills.sh client are all pure modules â€
 
 ## Reporting bugs
 
-Open an [issue](https://github.com/YOUR-GH-USERNAME/skills-installer/issues/new/choose) with:
+Open an [issue](https://github.com/esdrassantos06/skills-installer/issues/new/choose) with:
 
 - What you tried
 - What happened
