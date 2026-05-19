@@ -49,10 +49,10 @@
     "@vitest/ui": "^4.1.6",
     "electron": "^33.2.1",
     "electron-builder": "^25.1.8",
-    "electron-vite": "^2.3.0",
+    "electron-vite": "^5.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",
-    "vite": "^5.4.11",
+    "vite": "^8.0.13",
     "vitest": "^4.1.6"
   }
 }
