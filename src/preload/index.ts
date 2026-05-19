@@ -16,9 +16,22 @@ export type InstallOptions = {
   force: boolean;
 };
 
+export type SearchedSkill = {
+  id: string;
+  skillId: string;
+  name: string;
+  source: string;
+  installs: number;
+};
+
 const api = {
   installAll: (lines: string[], opts: InstallOptions): Promise<FinishedEvent> =>
     ipcRenderer.invoke('install-all', lines, opts),
+
+  searchSkills: (
+    query: string,
+  ): Promise<{ skills: SearchedSkill[]; error: string | null }> =>
+    ipcRenderer.invoke('search-skills', query),
 
   onPlan: (cb: (e: PlanEvent) => void) => listen('install:plan', cb),
   onStart: (cb: (e: StartEvent) => void) => listen('install:start', cb),

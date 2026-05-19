@@ -7,6 +7,11 @@ import type {
   StartEvent,
 } from '../../preload';
 import { AgentSelect } from './AgentSelect';
+import { SearchPage } from './SearchPage';
+import type { Skill } from '../../../src/main/searchReducer';
+
+type View = 'installer' | 'search';
+const VIEW_KEY = 'skills-installer:view';
 
 type Status = 'pending' | 'running' | 'ok' | 'err' | 'skipped';
 type Run = {
@@ -165,7 +170,7 @@ export default function App() {
   }
 
   return (
-    <Installer
+    <Shell
       agents={agents}
       rememberAgents={remember}
       onChangeAgents={() => setAgents(null)}
@@ -173,7 +178,7 @@ export default function App() {
   );
 }
 
-function Installer({
+function Shell({
   agents,
   rememberAgents,
   onChangeAgents,
@@ -182,6 +187,9 @@ function Installer({
   rememberAgents: boolean;
   onChangeAgents: () => void;
 }) {
+  const [view, setView] = useState<View>(
+    () => (localStorage.getItem(VIEW_KEY) as View) || 'installer',
+  );
   const [input, setInput] = useState(
     () => localStorage.getItem(INPUT_KEY) ?? '',
   );
@@ -189,6 +197,108 @@ function Installer({
   useEffect(() => {
     localStorage.setItem(INPUT_KEY, input);
   }, [input]);
+
+  useEffect(() => {
+    localStorage.setItem(VIEW_KEY, view);
+  }, [view]);
+
+  function appendSkill(skill: Skill) {
+    const line = `${skill.source}@${skill.skillId}`;
+    setInput((cur) => {
+      const existing = new Set(
+        cur
+          .split('\n')
+          .map((l) => l.trim())
+          .filter(Boolean),
+      );
+      if (existing.has(line)) return cur;
+      const trimmed = cur.trimEnd();
+      return (trimmed ? trimmed + '\n' : '') + line + '\n';
+    });
+  }
+
+  return (
+    <div className="flex h-full flex-col">
+      <Tabs view={view} onChange={setView} />
+      <div className="min-h-0 flex-1">
+        {view === 'installer' ? (
+          <Installer
+            agents={agents}
+            rememberAgents={rememberAgents}
+            onChangeAgents={onChangeAgents}
+            input={input}
+            setInput={setInput}
+          />
+        ) : (
+          <SearchPage onAddToInstaller={appendSkill} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Tabs({
+  view,
+  onChange,
+}: {
+  view: View;
+  onChange: (v: View) => void;
+}) {
+  return (
+    <nav className="titlebar-drag flex items-center gap-1 border-b border-border bg-bg/80 px-3 pt-2 pb-0 pl-24 backdrop-blur">
+      <TabButton
+        active={view === 'installer'}
+        onClick={() => onChange('installer')}
+        label="Installer"
+      />
+      <TabButton
+        active={view === 'search'}
+        onClick={() => onChange('search')}
+        label="Search"
+      />
+    </nav>
+  );
+}
+
+function TabButton({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`titlebar-nodrag relative -mb-px rounded-t-md border border-b-0 px-3 py-1.5 text-[12px] transition ${
+        active
+          ? 'border-border bg-panel text-text'
+          : 'border-transparent text-muted hover:text-text'
+      }`}
+    >
+      {label}
+      {active && (
+        <span className="absolute -bottom-px left-0 right-0 h-px bg-panel" />
+      )}
+    </button>
+  );
+}
+
+function Installer({
+  agents,
+  rememberAgents,
+  onChangeAgents,
+  input,
+  setInput,
+}: {
+  agents: string[];
+  rememberAgents: boolean;
+  onChangeAgents: () => void;
+  input: string;
+  setInput: React.Dispatch<React.SetStateAction<string>>;
+}) {
 
   const [force, setForce] = useState(
     () => localStorage.getItem(FORCE_KEY) === '1',

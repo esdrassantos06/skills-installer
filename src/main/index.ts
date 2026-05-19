@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import { parseLine, detectAlreadyInstalled } from './parser';
+import { searchSkills, SkillsApiError, type Skill } from './skillsApi';
 
 export type InstallOptions = {
   agents: string[];
@@ -84,6 +85,25 @@ app.whenReady().then(() => {
       }
       send('install:finished', { ok, fail, skipped });
       return { ok, fail, skipped };
+    },
+  );
+
+  ipcMain.handle(
+    'search-skills',
+    async (
+      _evt,
+      query: string,
+    ): Promise<{ skills: Skill[]; error: string | null }> => {
+      try {
+        const r = await searchSkills(query);
+        return { skills: r.skills, error: null };
+      } catch (err) {
+        const message =
+          err instanceof SkillsApiError
+            ? err.message
+            : `Unknown error: ${(err as Error).message}`;
+        return { skills: [], error: message };
+      }
     },
   );
 

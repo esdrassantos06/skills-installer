@@ -1,0 +1,52 @@
+name: Bug report
+description: Something doesn't work the way it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Describe the bug. Include actual vs. expected.
+      placeholder: |
+        I pasted X, clicked Install, and Y happened. I expected Z.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: The exact lines you pasted, the agent(s) you targeted, and whether "force reinstall" was on.
+      render: text
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS + version
+      placeholder: macOS 14.5 (arm64) / Windows 11 23H2 / Ubuntu 24.04
+    validations:
+      required: true
+
+  - type: input
+    id: node
+    attributes:
+      label: Node version
+      description: Output of `node -v`. Skip if you're using a pre-built release.
+      placeholder: v22.10.0
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: From the About menu, or commit hash if running from source.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / error output
+      description: If a run failed, expand the card and paste the log.
+      render: text
