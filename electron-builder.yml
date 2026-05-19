@@ -1,0 +1,19 @@
+appId: com.esdras.skills-installer
+productName: Skills Installer
+directories:
+  output: dist
+files:
+  - out/**/*
+  - package.json
+mac:
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  category: public.app-category.developer-tools
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDir: true

@@ -1,0 +1,95 @@
+@import "tailwindcss";
+@import "@fontsource-variable/jetbrains-mono";
+
+@theme {
+  --color-bg: #0a0b0e;
+  --color-panel: #111317;
+  --color-panel-2: #15181d;
+  --color-border: #20242c;
+  --color-border-strong: #2c323c;
+  --color-text: #e8eaed;
+  --color-muted: #7a828f;
+  --color-subtle: #545b66;
+  --color-accent: #7aa2ff;
+  --color-accent-soft: #1e2840;
+  --color-ok: #7ee2a8;
+  --color-warn: #f0c674;
+  --color-err: #ff8585;
+
+  --font-sans:
+    "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono:
+    "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-feature-settings: "calt", "liga", "ss01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-text);
+}
+
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+.titlebar-nodrag {
+  -webkit-app-region: no-drag;
+}
+
+.bg-canvas {
+  background:
+    radial-gradient(
+      900px 500px at 0% -10%,
+      rgba(122, 162, 255, 0.06),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 400px at 100% 110%,
+      rgba(126, 226, 168, 0.04),
+      transparent 60%
+    ),
+    var(--color-bg);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-subtle);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.pulse-dot {
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
