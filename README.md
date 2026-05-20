@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/main.png" alt="Agent selection screen on first launch" width="440">
+  <img src="assets/screenshots/main.png" alt="First-launch screen: pick which agents (Claude Code, Cursor, etc.) skills should be installed for" width="440">
   &nbsp;
   <img src="assets/screenshots/search.png" alt="Search tab Featured list with top skills" width="440">
 </p>
