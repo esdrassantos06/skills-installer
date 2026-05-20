@@ -12,6 +12,16 @@
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
 </p>
 
+<p align="center">
+  <img src="assets/screenshots/installer.png" alt="Installer tab with three skills running, one log expanded" width="900">
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/main.png" alt="Agent selection screen on first launch" width="440">
+  &nbsp;
+  <img src="assets/screenshots/search.png" alt="Search tab Featured list with top skills" width="440">
+</p>
+
 ---
 
 Targets Claude Code by default, plus eight other agents (Cursor, Codex, OpenCode, Antigravity, Windsurf, Gemini Code Assist, GitHub Copilot, Continue). Cross-platform: macOS (arm64 + x64), Windows, Linux.
