@@ -157,7 +157,7 @@ Pure logic (`parser.ts`, `skillsApi.ts`, `searchReducer.ts`, `cache.ts`) lives i
 ## Tests
 
 ```bash
-npm test           # vitest run (58 tests)
+npm test           # vitest run
 npm run test:watch # vitest watch
 npm run test:ui    # vitest browser UI
 ```
