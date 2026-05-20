@@ -139,6 +139,7 @@ export default function App() {
   const [remember, setRemember] = useState(
     () => localStorage.getItem(REMEMBER_KEY) === "1",
   );
+  const [pickerOpen, setPickerOpen] = useState(!agents);
 
   function confirmAgents(next: string[], rememberNext: boolean) {
     setAgents(next);
@@ -150,10 +151,12 @@ export default function App() {
       localStorage.removeItem(AGENTS_KEY);
       localStorage.removeItem(REMEMBER_KEY);
     }
+    setPickerOpen(false);
   }
 
-  if (!agents) {
-    const initial = (() => {
+  const pickerInitial =
+    agents ??
+    (() => {
       try {
         const v = JSON.parse(localStorage.getItem(AGENTS_KEY) ?? "[]");
         return Array.isArray(v) ? v : [];
@@ -161,21 +164,26 @@ export default function App() {
         return [];
       }
     })();
-    return (
-      <AgentSelect
-        initial={initial}
-        rememberInitial={remember}
-        onConfirm={confirmAgents}
-      />
-    );
-  }
 
   return (
-    <Shell
-      agents={agents}
-      rememberAgents={remember}
-      onChangeAgents={() => setAgents(null)}
-    />
+    <>
+      {agents && (
+        <Shell
+          agents={agents}
+          rememberAgents={remember}
+          onChangeAgents={() => setPickerOpen(true)}
+        />
+      )}
+      {pickerOpen && (
+        <div className="fixed inset-0 z-50">
+          <AgentSelect
+            initial={pickerInitial}
+            rememberInitial={remember}
+            onConfirm={confirmAgents}
+          />
+        </div>
+      )}
+    </>
   );
 }
 
