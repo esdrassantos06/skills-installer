@@ -8,6 +8,7 @@ export type ParsedCommand = {
   args: string[];
   display: string;
   source: string;
+  skillNames: string[];
 };
 
 const SOURCE_FLAGS_TAKING_VALUE = new Set([
@@ -95,7 +96,8 @@ export function parseLine(line: string, opts: ParseOptions): ParsedCommand | nul
   const agents = userAgents.length ? userAgents : opts.agents;
   for (const a of agents) finalArgs.push('-a', a);
 
-  return { args: finalArgs, display: 'npx ' + finalArgs.join(' '), source };
+  const skillNames = extractSkillNames(source, tokens);
+  return { args: finalArgs, display: 'npx ' + finalArgs.join(' '), source, skillNames };
 }
 
 function tokenize(str: string): string[] {
@@ -105,6 +107,27 @@ function tokenize(str: string): string[] {
   while ((m = re.exec(str)) !== null) {
     out.push(m[1] ?? m[2] ?? m[3]);
   }
+  return out;
+}
+
+const SKILL_NAME_REGEX = /^[a-z][a-z0-9_-]*$/i;
+
+export function extractSkillNames(source: string, tokens: string[]): string[] {
+  const out: string[] = [];
+
+  const atIndex = source.lastIndexOf('@');
+  if (atIndex > 0 && atIndex < source.length - 1) {
+    const candidate = source.slice(atIndex + 1);
+    if (SKILL_NAME_REGEX.test(candidate)) out.push(candidate);
+  }
+
+  for (let i = 0; i < tokens.length; i++) {
+    if ((tokens[i] === '--skill' || tokens[i] === '-s') && tokens[i + 1]) {
+      out.push(tokens[i + 1]);
+      i++;
+    }
+  }
+
   return out;
 }
 
