@@ -5,6 +5,7 @@ import { parseLine, detectAlreadyInstalled } from "./parser";
 import { searchSkills, SkillsApiError, type Skill } from "./skillsApi";
 import { Cache } from "./cache";
 import { cleanCliOutput } from "./cleanCliOutput";
+import { getInstalledSkillNames, shouldSkip } from "./installedSkills";
 
 export type InstallOptions = {
   agents: string[];
@@ -69,6 +70,9 @@ app.whenReady().then(() => {
         commands: parsed.map((p) => ({ display: p.display, source: p.source })),
       });
 
+      const candidateNames = parsed.flatMap((p) => p.skillNames);
+      const installedSet = await getInstalledSkillNames(candidateNames);
+
       let ok = 0;
       let fail = 0;
       let skipped = 0;
@@ -76,6 +80,17 @@ app.whenReady().then(() => {
       for (let i = 0; i < parsed.length; i++) {
         const p = parsed[i];
         send("install:start", { index: i, cmd: p.display });
+
+        if (shouldSkip(p.skillNames, installedSet, opts.force)) {
+          send("install:log", {
+            index: i,
+            stream: "out",
+            text: `Already installed (${p.skillNames.join(", ")}). Skipping. Toggle "force reinstall" to override.\n`,
+          });
+          send("install:done", { index: i, code: 0, alreadyInstalled: true });
+          skipped++;
+          continue;
+        }
 
         const result = await runSingle({
           index: i,
