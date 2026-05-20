@@ -22,10 +22,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm
@@ -33,10 +33,11 @@ jobs:
       - name: Verify lockfile is in sync with package.json
         if: matrix.os == 'ubuntu-latest'
         run: |
-          npm install --package-lock-only --ignore-scripts
+          npm install --package-lock-only --include=optional --ignore-scripts
           if ! git diff --exit-code package-lock.json; then
             echo "::error::package-lock.json is out of sync with package.json."
-            echo "::error::Run 'npm install' locally and commit the updated lockfile."
+            echo "::error::Run 'npm install --package-lock-only --include=optional' locally and commit the updated lockfile."
+            git diff package-lock.json | head -50
             exit 1
           fi
 
