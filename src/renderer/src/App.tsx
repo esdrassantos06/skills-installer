@@ -529,7 +529,7 @@ anthropics/skills@frontend-design
                 checked={force}
                 onChange={(e) => setForce(e.target.checked)}
                 disabled={running}
-                className="h-3 w-3 accent-[var(--color-accent)]"
+                className="h-3 w-3 accent-accent"
               />
               force reinstall
             </label>
@@ -752,7 +752,7 @@ function RunCard({ run, onToggle }: { run: Run; onToggle: () => void }) {
         </span>
       </button>
       {run.expanded && run.log.length > 0 && (
-        <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words border-t border-border bg-bg/40 px-3 py-2 font-mono text-[11.5px] leading-[1.55]">
+        <pre className="max-h-72 overflow-auto whitespace-pre-wrap wrap-break-word border-t border-border bg-bg/40 px-3 py-2 font-mono text-[11.5px] leading-[1.55]">
           {run.log.map((l, i) => (
             <span
               key={i}
