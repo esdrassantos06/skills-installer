@@ -86,9 +86,9 @@ jobs:
 
             Download the `.zip` (recommended) or `.dmg` for your arch. After moving the app to /Applications, run once:
 
-            ```bash
+            `
             xattr -dr com.apple.quarantine "/Applications/Skills Installer.app"
-            ```
+            `
 
             This strips the quarantine attribute that macOS adds to downloaded apps. Without it, you'll see "app is damaged and can't be opened" because the binary isn't signed by an Apple-issued cert.
 
