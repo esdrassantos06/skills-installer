@@ -2,6 +2,19 @@
 
 Notable changes per version. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.3] - 2026-05-20
+
+### Fixed
+
+- **Release pipeline**. electron-builder 26 renamed `nsis.allowToChangeInstallationDir` to `allowToChangeInstallationDirectory`. The mismatch was failing the dist step before the build started.
+- **Unsigned distribution paths for macOS and Windows**. Set `mac.identity: null` and `CSC_IDENTITY_AUTO_DISCOVERY=false` in the release workflow so the build no longer requires a paid Apple Developer cert. macOS ships as `.zip` (recommended) and `.dmg`. Windows ships as NSIS installer and portable `.exe`. SmartScreen and Gatekeeper still warn (no free way around that), so the release body now embeds the bypass instructions (xattr command for macOS, "More info, Run anyway" for Windows).
+- **Linux AppImage** added to the release pipeline. Previously only mac and win were built.
+- **CI lockfile-drift guard** removed. It kept catching a cross-platform npm quirk that always had the same fix (re-run install). Net cost > value for a small team. CI now uses `npm install --include=optional` symmetrically across all three OSes.
+
+### Note
+
+v0.1.2 was tagged but its release build failed at the electron-builder validation step. The GitHub Release page for v0.1.2 only contains the auto-generated source archives. v0.1.3 is the first release with real artifacts.
+
 ## [0.1.2] - 2026-05-20
 
 ### Added
