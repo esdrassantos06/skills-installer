@@ -17,11 +17,14 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            artifact: dist/*.dmg
+            artifact: dist/*.{dmg,zip}
             command: npm run dist:mac
           - os: windows-latest
             artifact: dist/*.exe
             command: npm run dist:win
+          - os: ubuntu-latest
+            artifact: dist/*.AppImage
+            command: npm run dist:linux
     steps:
       - uses: actions/checkout@v5
 
@@ -32,7 +35,10 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --include=optional --no-audit --no-fund
+
+      - name: Generate raster icons
+        run: npm run icons
 
       - name: Run tests
         run: npm test
@@ -41,6 +47,9 @@ jobs:
         run: ${{ matrix.command }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          WIN_CSC_LINK: ''
+          CSC_LINK: ''
 
       - name: Upload artifact
         uses: actions/upload-artifact@v5
@@ -54,7 +63,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Download all artifacts
         uses: actions/download-artifact@v5
@@ -68,5 +77,27 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref, '-') }}
+          body: |
+            ## Installation notes
+
+            **macOS** (unsigned, no Apple Developer cert):
+
+            Download the `.zip` (recommended) or `.dmg` for your arch. After moving the app to /Applications, run once:
+
+            ```bash
+            xattr -dr com.apple.quarantine "/Applications/Skills Installer.app"
+            ```
+
+            This strips the quarantine attribute that macOS adds to downloaded apps. Without it, you'll see "app is damaged and can't be opened" because the binary isn't signed by an Apple-issued cert.
+
+            **Windows** (unsigned):
+
+            Download `Skills Installer-Setup-X.Y.Z.exe` (installer) or `Skills Installer-Portable-X.Y.Z.exe` (no install).
+
+            SmartScreen will block the first run. Click **More info** then **Run anyway**. This is expected for unsigned binaries from individual developers.
+
+            **Linux**:
+
+            Download the `.AppImage`, `chmod +x` it, then run.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

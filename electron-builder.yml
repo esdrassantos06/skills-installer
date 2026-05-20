@@ -6,23 +6,44 @@ directories:
 files:
   - out/**/*
   - package.json
+
+# macOS: unsigned distribution.
+# identity: null disables code signing entirely. Users will need to remove the
+# quarantine attribute after installing (see README "Install on macOS").
+# Shipping ZIP alongside DMG because ZIP is the lower-friction unsigned format
+# (no DMG mount, no Gatekeeper translocation).
 mac:
   target:
+    - target: zip
+      arch: [arm64, x64]
     - target: dmg
       arch: [arm64, x64]
   category: public.app-category.developer-tools
   icon: assets/icons/icon.png
+  identity: null
+
+# Windows: unsigned. SmartScreen will show "Windows protected your PC" until
+# the binary builds reputation (or someone buys a code-signing cert).
+# Shipping portable + NSIS so users can pick.
 win:
   target:
     - target: nsis
       arch: [x64]
+    - target: portable
+      arch: [x64]
   icon: assets/icons/icon.png
+
 linux:
   target:
     - target: AppImage
       arch: [x64]
   icon: assets/icons/icon.png
   category: Development
+
 nsis:
   oneClick: false
-  allowToChangeInstallationDir: true
+  allowToChangeInstallationDirectory: true
+  artifactName: ${productName}-Setup-${version}.${ext}
+
+portable:
+  artifactName: ${productName}-Portable-${version}.${ext}

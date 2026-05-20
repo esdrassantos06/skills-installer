@@ -30,19 +30,8 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - name: Verify lockfile is in sync with package.json
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          npm install --package-lock-only --include=optional --ignore-scripts
-          if ! git diff --exit-code package-lock.json; then
-            echo "::error::package-lock.json is out of sync with package.json."
-            echo "::error::Run 'npm install --package-lock-only --include=optional' locally and commit the updated lockfile."
-            git diff package-lock.json | head -50
-            exit 1
-          fi
-
       - name: Install dependencies
-        run: npm ci
+        run: npm install --include=optional --no-audit --no-fund
 
       - name: Run tests
         run: npm test

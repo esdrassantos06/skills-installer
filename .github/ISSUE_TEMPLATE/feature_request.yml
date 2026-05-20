@@ -6,7 +6,7 @@ body:
     id: problem
     attributes:
       label: What's the problem
-      description: What are you trying to do that doesn't work today? Skip the solution — focus on the pain.
+      description: What are you trying to do that doesn't work today? Skip the solution, focus on the pain.
     validations:
       required: true
 

@@ -27,7 +27,30 @@ The `skills` CLI installs one source per invocation and prompts for confirmation
 - Kills any spawn that hangs for 90 seconds. A stuck CLI used to mean infinite "pending".
 - Browses the skills.sh catalog from a built-in **Search** tab with a Featured list cached in memory.
 
-## Install (from source)
+## Install
+
+### Pre-built releases
+
+Grab the artifact for your OS from [GitHub Releases](https://github.com/esdrassantos06/skills-installer/releases).
+
+**macOS** (`.zip` or `.dmg`, arm64 / x64). The app is **not** code-signed (no Apple Developer cert), so macOS will refuse to open it on the first run with "app is damaged and can't be opened" or "developer cannot be verified". To bypass:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Skills Installer.app"
+```
+
+That strips the quarantine attribute macOS adds to downloaded binaries. After that, the app opens normally. Alternative: right-click the app, pick **Open** the first time, confirm in the prompt.
+
+**Windows** (`.exe` installer or portable). Also unsigned, so Microsoft SmartScreen will show "Windows protected your PC" on first run. Click **More info** then **Run anyway**. This is the expected experience for unsigned binaries from individual developers, and Microsoft only stops showing the warning after the binary builds reputation across many downloads.
+
+**Linux** (`.AppImage`):
+
+```bash
+chmod +x "Skills Installer-X.Y.Z.AppImage"
+./Skills\ Installer-X.Y.Z.AppImage
+```
+
+### From source
 
 ```bash
 git clone https://github.com/esdrassantos06/skills-installer.git
@@ -36,15 +59,14 @@ npm install
 npm run dev
 ```
 
-To build distributable installers:
+To build distributable installers locally:
 
 ```bash
-npm run dist:mac     # .dmg, arm64 + x64
-npm run dist:win     # .exe NSIS, x64
-npm run dist:all     # both
+npm run dist:mac     # .zip + .dmg, arm64 + x64
+npm run dist:win     # .exe NSIS installer + portable
+npm run dist:linux   # .AppImage
+npm run dist:all     # all three
 ```
-
-Pre-built releases ship via [GitHub Releases](https://github.com/esdrassantos06/skills-installer/releases) on tagged versions.
 
 ## Usage
 
