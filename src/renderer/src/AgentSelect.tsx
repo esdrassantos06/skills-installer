@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { KNOWN_AGENTS } from './agents';
+import { Logo } from './Logo';
 
 type Props = {
   initial: string[];
@@ -42,6 +43,7 @@ export function AgentSelect({ initial, rememberInitial, onConfirm }: Props) {
     <div className="bg-canvas flex h-full items-center justify-center px-6">
       <div className="w-full max-w-xl">
         <header className="mb-6 text-center">
+          <Logo variant="icon" size={64} className="mx-auto mb-4" />
           <h1 className="text-[22px] font-semibold tracking-tight">
             Where should skills be installed?
           </h1>
@@ -128,7 +130,7 @@ export function AgentSelect({ initial, rememberInitial, onConfirm }: Props) {
             type="checkbox"
             checked={remember}
             onChange={(e) => setRemember(e.target.checked)}
-            className="h-3.5 w-3.5 accent-[var(--color-accent)]"
+            className="h-3.5 w-3.5 accent-accent"
           />
           Remember for next sessions
         </label>

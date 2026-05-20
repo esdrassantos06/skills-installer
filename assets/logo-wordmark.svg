@@ -1,0 +1,18 @@
+<svg width="640" height="160" viewBox="0 0 640 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Skills Installer">
+  <title>Skills Installer</title>
+
+  <!-- Icon -->
+  <g transform="translate(8 8)">
+    <rect width="144" height="144" rx="32" fill="#0a0b0e"/>
+    <circle cx="20" cy="20" r="80" fill="#7aa2ff" fill-opacity="0.06"/>
+    <path d="M 106 42 L 38 42 L 38 72 L 106 72 L 106 102 L 38 102"
+          stroke="#7aa2ff" stroke-width="18" stroke-linejoin="miter" fill="none"/>
+    <circle cx="29" cy="102" r="5" fill="#7ee2a8"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(180 0)" font-family="'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace">
+    <text x="0" y="74" font-size="38" font-weight="600" fill="#e8eaed" letter-spacing="-0.5">Skills</text>
+    <text x="0" y="118" font-size="38" font-weight="600" fill="#7aa2ff" letter-spacing="-0.5">Installer</text>
+  </g>
+</svg>

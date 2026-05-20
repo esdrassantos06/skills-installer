@@ -1,0 +1,7 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Skills Installer</title>
+  <rect width="64" height="64" rx="14" fill="#0a0b0e"/>
+  <path d="M 47 19 L 17 19 L 17 32 L 47 32 L 47 45 L 17 45"
+        stroke="#7aa2ff" stroke-width="8" stroke-linejoin="miter" fill="none"/>
+  <circle cx="13" cy="45" r="3" fill="#7ee2a8"/>
+</svg>
