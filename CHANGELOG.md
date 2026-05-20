@@ -2,6 +2,18 @@
 
 Notable changes per version. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.4] - 2026-05-20
+
+### Fixed
+
+- **Already-installed detection.** The previous regex on CLI stdout missed reinstalls because the `skills` CLI doesn't always print `already installed` / `skipping`. Replaced with a filesystem pre-check: before the install loop, the main process probes each referenced skill name against the 9 known agent install dirs (`.claude/skills`, `.cursor/skills`, `.codex/skills`, `.opencode/skills`, `.gemini/antigravity/skills`, `.windsurf/skills`, `.continue/skills`, `.copilot/skills`, `.agents/skills`). Match returns `skipped` without spawning npx. Force-reinstall toggle bypasses the check.
+- **Execution state lost when opening the agent picker.** Clicking "change agents" was remounting the entire Shell, throwing away runs, input, summary, and scroll position. The picker now renders as an overlay on top of Shell instead of replacing it.
+
+### Added
+
+- `extractSkillNames` in the parser pulls skill names out of `owner/repo@skill` sources and `--skill` / `-s` flags so the pre-flight check has matchable tokens. 11 new tests.
+- `getInstalledSkillNames` / `shouldSkip` in `src/main/installedSkills.ts`. Filesystem-based, injection-friendly, no spawn. 11 new tests.
+
 ## [0.1.3] - 2026-05-20
 
 ### Fixed
