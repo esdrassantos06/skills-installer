@@ -17,13 +17,15 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            artifact: dist/*.{dmg,zip}
+            artifacts: |
+              dist/*.dmg
+              dist/*.zip
             command: npm run dist:mac
           - os: windows-latest
-            artifact: dist/*.exe
+            artifacts: dist/*.exe
             command: npm run dist:win
           - os: ubuntu-latest
-            artifact: dist/*.AppImage
+            artifacts: dist/*.AppImage
             command: npm run dist:linux
     steps:
       - uses: actions/checkout@v5
@@ -55,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.os }}-build
-          path: ${{ matrix.artifact }}
+          path: ${{ matrix.artifacts }}
           if-no-files-found: error
 
   release:
