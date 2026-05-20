@@ -1,142 +1,143 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   DoneEvent,
   FinishedEvent,
   LogEvent,
   PlanEvent,
   StartEvent,
-} from '../../preload';
-import { AgentSelect } from './AgentSelect';
-import { SearchPage } from './SearchPage';
-import type { Skill } from '../../../src/main/searchReducer';
+} from "../../preload";
+import { AgentSelect } from "./AgentSelect";
+import { SearchPage } from "./SearchPage";
+import { Logo } from "./Logo";
+import type { Skill } from "../../../src/main/searchReducer";
 
-type View = 'installer' | 'search';
-const VIEW_KEY = 'skills-installer:view';
+type View = "installer" | "search";
+const VIEW_KEY = "skills-installer:view";
 
-type Status = 'pending' | 'running' | 'ok' | 'err' | 'skipped';
+type Status = "pending" | "running" | "ok" | "err" | "skipped";
 type Run = {
   index: number;
   cmd: string;
   source: string;
   status: Status;
   exitCode?: number;
-  log: { stream: 'out' | 'err'; text: string }[];
+  log: { stream: "out" | "err"; text: string }[];
   expanded: boolean;
 };
 
-const INPUT_KEY = 'skills-installer:input';
-const AGENTS_KEY = 'skills-installer:agents';
-const REMEMBER_KEY = 'skills-installer:remember-agents';
-const FORCE_KEY = 'skills-installer:force';
+const INPUT_KEY = "skills-installer:input";
+const AGENTS_KEY = "skills-installer:agents";
+const REMEMBER_KEY = "skills-installer:remember-agents";
+const FORCE_KEY = "skills-installer:force";
 
 const PRESETS: { label: string; hint: string; lines: string[] }[] = [
   {
-    label: 'Design',
-    hint: 'frontend, UI/UX',
+    label: "Design",
+    hint: "frontend, UI/UX",
     lines: [
-      'anthropics/skills@frontend-design',
-      'vercel-labs/agent-skills@web-design-guidelines',
-      'nextlevelbuilder/ui-ux-pro-max-skill@ui-ux-pro-max',
-      'leonxlnx/taste-skill@design-taste-frontend',
-      'arvindrk/extract-design-system@extract-design-system',
-      'wshobson/agents@tailwind-design-system',
+      "anthropics/skills@frontend-design",
+      "vercel-labs/agent-skills@web-design-guidelines",
+      "nextlevelbuilder/ui-ux-pro-max-skill@ui-ux-pro-max",
+      "leonxlnx/taste-skill@design-taste-frontend",
+      "arvindrk/extract-design-system@extract-design-system",
+      "wshobson/agents@tailwind-design-system",
     ],
   },
   {
-    label: 'React / Next / RN',
-    hint: 'web + mobile',
+    label: "React / Next / RN",
+    hint: "web + mobile",
     lines: [
-      'vercel-labs/agent-skills@vercel-react-best-practices',
-      'vercel-labs/agent-skills@vercel-react-native-skills',
-      'callstackincubator/agent-skills@react-native-best-practices',
-      'vercel-labs/agent-skills@vercel-react-view-transitions',
-      'wshobson/agents@nextjs-app-router-patterns',
+      "vercel-labs/agent-skills@vercel-react-best-practices",
+      "vercel-labs/agent-skills@vercel-react-native-skills",
+      "callstackincubator/agent-skills@react-native-best-practices",
+      "vercel-labs/agent-skills@vercel-react-view-transitions",
+      "wshobson/agents@nextjs-app-router-patterns",
     ],
   },
   {
-    label: 'Backend / TS',
-    hint: 'Node, Nest, types',
+    label: "Backend / TS",
+    hint: "Node, Nest, types",
     lines: [
-      'wshobson/agents@typescript-advanced-types',
-      'dotneet/claude-code-marketplace@typescript-react-reviewer',
-      'wshobson/agents@nodejs-backend-patterns',
-      'mcollina/skills@node',
-      'kadajett/agent-nestjs-skills@nestjs-best-practices',
+      "wshobson/agents@typescript-advanced-types",
+      "dotneet/claude-code-marketplace@typescript-react-reviewer",
+      "wshobson/agents@nodejs-backend-patterns",
+      "mcollina/skills@node",
+      "kadajett/agent-nestjs-skills@nestjs-best-practices",
     ],
   },
   {
-    label: 'Testing',
-    hint: 'vitest, e2e, playwright',
+    label: "Testing",
+    hint: "vitest, e2e, playwright",
     lines: [
-      'anthropics/skills@webapp-testing',
-      'antfu/skills@vitest',
-      'wshobson/agents@javascript-testing-patterns',
-      'wshobson/agents@e2e-testing-patterns',
-      'currents-dev/playwright-best-practices-skill@playwright-best-practices',
-      'supercent-io/skills-template@testing-strategies',
+      "anthropics/skills@webapp-testing",
+      "antfu/skills@vitest",
+      "wshobson/agents@javascript-testing-patterns",
+      "wshobson/agents@e2e-testing-patterns",
+      "currents-dev/playwright-best-practices-skill@playwright-best-practices",
+      "supercent-io/skills-template@testing-strategies",
     ],
   },
   {
-    label: 'Writing',
-    hint: 'anti-slop, prose',
+    label: "Writing",
+    hint: "anti-slop, prose",
     lines: [
-      'brianlovin/claude-config@deslop',
-      'jalaalrd/anti-ai-slop-writing@anti-ai-slop-writing',
-      'obra/superpowers@writing-skills',
-      'coreyhaines31/marketingskills@copywriting',
-      'coreyhaines31/marketingskills@copy-editing',
-      'supercent-io/skills-template@technical-writing',
+      "brianlovin/claude-config@deslop",
+      "jalaalrd/anti-ai-slop-writing@anti-ai-slop-writing",
+      "obra/superpowers@writing-skills",
+      "coreyhaines31/marketingskills@copywriting",
+      "coreyhaines31/marketingskills@copy-editing",
+      "supercent-io/skills-template@technical-writing",
     ],
   },
   {
-    label: 'Docs',
-    hint: 'README, API docs, ADRs',
+    label: "Docs",
+    hint: "README, API docs, ADRs",
     lines: [
-      'anthropics/knowledge-work-plugins@documentation',
-      'github/awesome-copilot@documentation-writer',
-      'github/awesome-copilot@create-readme',
-      'supercent-io/skills-template@api-documentation',
-      'addyosmani/agent-skills@documentation-and-adrs',
-      'softaworks/agent-toolkit@crafting-effective-readmes',
+      "anthropics/knowledge-work-plugins@documentation",
+      "github/awesome-copilot@documentation-writer",
+      "github/awesome-copilot@create-readme",
+      "supercent-io/skills-template@api-documentation",
+      "addyosmani/agent-skills@documentation-and-adrs",
+      "softaworks/agent-toolkit@crafting-effective-readmes",
     ],
   },
   {
-    label: 'Security',
-    hint: 'OWASP, auth, audit',
+    label: "Security",
+    hint: "OWASP, auth, audit",
     lines: [
-      'supercent-io/skills-template@security-best-practices',
-      'hoodini/ai-agents-skills@owasp-security',
-      'agamm/claude-code-owasp@owasp-security',
-      'better-auth/skills@better-auth-security-best-practices',
-      'useai-pro/openclaw-skills-security@skill-vetter',
+      "supercent-io/skills-template@security-best-practices",
+      "hoodini/ai-agents-skills@owasp-security",
+      "agamm/claude-code-owasp@owasp-security",
+      "better-auth/skills@better-auth-security-best-practices",
+      "useai-pro/openclaw-skills-security@skill-vetter",
     ],
   },
   {
-    label: 'A11y / Review',
-    hint: 'accessibility, code review',
+    label: "A11y / Review",
+    hint: "accessibility, code review",
     lines: [
-      'addyosmani/web-quality-skills@accessibility',
-      'ibelick/ui-skills@fixing-accessibility',
-      'obra/superpowers@requesting-code-review',
-      'obra/superpowers@receiving-code-review',
-      'wshobson/agents@code-review-excellence',
+      "addyosmani/web-quality-skills@accessibility",
+      "ibelick/ui-skills@fixing-accessibility",
+      "obra/superpowers@requesting-code-review",
+      "obra/superpowers@receiving-code-review",
+      "wshobson/agents@code-review-excellence",
     ],
   },
 ];
 
 export default function App() {
   const [agents, setAgents] = useState<string[] | null>(() => {
-    const remember = localStorage.getItem(REMEMBER_KEY) === '1';
+    const remember = localStorage.getItem(REMEMBER_KEY) === "1";
     if (!remember) return null;
     try {
-      const stored = JSON.parse(localStorage.getItem(AGENTS_KEY) ?? '[]');
+      const stored = JSON.parse(localStorage.getItem(AGENTS_KEY) ?? "[]");
       return Array.isArray(stored) && stored.length ? stored : null;
     } catch {
       return null;
     }
   });
   const [remember, setRemember] = useState(
-    () => localStorage.getItem(REMEMBER_KEY) === '1',
+    () => localStorage.getItem(REMEMBER_KEY) === "1",
   );
 
   function confirmAgents(next: string[], rememberNext: boolean) {
@@ -144,7 +145,7 @@ export default function App() {
     setRemember(rememberNext);
     if (rememberNext) {
       localStorage.setItem(AGENTS_KEY, JSON.stringify(next));
-      localStorage.setItem(REMEMBER_KEY, '1');
+      localStorage.setItem(REMEMBER_KEY, "1");
     } else {
       localStorage.removeItem(AGENTS_KEY);
       localStorage.removeItem(REMEMBER_KEY);
@@ -154,7 +155,7 @@ export default function App() {
   if (!agents) {
     const initial = (() => {
       try {
-        const v = JSON.parse(localStorage.getItem(AGENTS_KEY) ?? '[]');
+        const v = JSON.parse(localStorage.getItem(AGENTS_KEY) ?? "[]");
         return Array.isArray(v) ? v : [];
       } catch {
         return [];
@@ -188,10 +189,10 @@ function Shell({
   onChangeAgents: () => void;
 }) {
   const [view, setView] = useState<View>(
-    () => (localStorage.getItem(VIEW_KEY) as View) || 'installer',
+    () => (localStorage.getItem(VIEW_KEY) as View) || "installer",
   );
   const [input, setInput] = useState(
-    () => localStorage.getItem(INPUT_KEY) ?? '',
+    () => localStorage.getItem(INPUT_KEY) ?? "",
   );
 
   useEffect(() => {
@@ -207,21 +208,24 @@ function Shell({
     setInput((cur) => {
       const existing = new Set(
         cur
-          .split('\n')
+          .split("\n")
           .map((l) => l.trim())
           .filter(Boolean),
       );
       if (existing.has(line)) return cur;
       const trimmed = cur.trimEnd();
-      return (trimmed ? trimmed + '\n' : '') + line + '\n';
+      return (trimmed ? trimmed + "\n" : "") + line + "\n";
     });
   }
 
   return (
     <div className="flex h-full flex-col">
       <Tabs view={view} onChange={setView} />
-      <div className="min-h-0 flex-1">
-        {view === 'installer' ? (
+      <div className="relative min-h-0 flex-1">
+        <div
+          className={`absolute inset-0 ${view === "installer" ? "" : "hidden"}`}
+          aria-hidden={view !== "installer"}
+        >
           <Installer
             agents={agents}
             rememberAgents={rememberAgents}
@@ -229,31 +233,29 @@ function Shell({
             input={input}
             setInput={setInput}
           />
-        ) : (
+        </div>
+        <div
+          className={`absolute inset-0 ${view === "search" ? "" : "hidden"}`}
+          aria-hidden={view !== "search"}
+        >
           <SearchPage onAddToInstaller={appendSkill} />
-        )}
+        </div>
       </div>
     </div>
   );
 }
 
-function Tabs({
-  view,
-  onChange,
-}: {
-  view: View;
-  onChange: (v: View) => void;
-}) {
+function Tabs({ view, onChange }: { view: View; onChange: (v: View) => void }) {
   return (
     <nav className="titlebar-drag flex items-center gap-1 border-b border-border bg-bg/80 px-3 pt-2 pb-0 pl-24 backdrop-blur">
       <TabButton
-        active={view === 'installer'}
-        onClick={() => onChange('installer')}
+        active={view === "installer"}
+        onClick={() => onChange("installer")}
         label="Installer"
       />
       <TabButton
-        active={view === 'search'}
-        onClick={() => onChange('search')}
+        active={view === "search"}
+        onClick={() => onChange("search")}
         label="Search"
       />
     </nav>
@@ -274,8 +276,8 @@ function TabButton({
       onClick={onClick}
       className={`titlebar-nodrag relative -mb-px rounded-t-md border border-b-0 px-3 py-1.5 text-[12px] transition ${
         active
-          ? 'border-border bg-panel text-text'
-          : 'border-transparent text-muted hover:text-text'
+          ? "border-border bg-panel text-text"
+          : "border-transparent text-muted hover:text-text"
       }`}
     >
       {label}
@@ -299,18 +301,19 @@ function Installer({
   input: string;
   setInput: React.Dispatch<React.SetStateAction<string>>;
 }) {
-
   const [force, setForce] = useState(
-    () => localStorage.getItem(FORCE_KEY) === '1',
+    () => localStorage.getItem(FORCE_KEY) === "1",
   );
   const [running, setRunning] = useState(false);
   const [runs, setRuns] = useState<Run[]>([]);
   const [summary, setSummary] = useState<FinishedEvent | null>(null);
   const [autoFollow, setAutoFollow] = useState(true);
   const runsRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const runRef = useRef<() => void>(() => {});
 
   useEffect(() => {
-    localStorage.setItem(FORCE_KEY, force ? '1' : '0');
+    localStorage.setItem(FORCE_KEY, force ? "1" : "0");
   }, [force]);
 
   useEffect(() => {
@@ -321,7 +324,7 @@ function Installer({
             index: i,
             cmd: c.display,
             source: c.source,
-            status: 'pending' as Status,
+            status: "pending" as Status,
             log: [],
             expanded: false,
           })),
@@ -331,7 +334,7 @@ function Installer({
       window.api.onStart((e: StartEvent) =>
         setRuns((rs) =>
           rs.map((r) =>
-            r.index === e.index ? { ...r, cmd: e.cmd, status: 'running' } : r,
+            r.index === e.index ? { ...r, cmd: e.cmd, status: "running" } : r,
           ),
         ),
       ),
@@ -351,10 +354,10 @@ function Installer({
               ? {
                   ...r,
                   status: e.alreadyInstalled
-                    ? 'skipped'
+                    ? "skipped"
                     : e.code === 0
-                      ? 'ok'
-                      : 'err',
+                      ? "ok"
+                      : "err",
                   exitCode: e.code,
                   expanded: e.code !== 0 && !e.alreadyInstalled,
                 }
@@ -377,8 +380,7 @@ function Installer({
 
   function onScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget;
-    const atBottom =
-      el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
     setAutoFollow(atBottom);
   }
 
@@ -386,7 +388,7 @@ function Installer({
     if (!runsRef.current) return;
     runsRef.current.scrollTo({
       top: runsRef.current.scrollHeight,
-      behavior: 'smooth',
+      behavior: "smooth",
     });
     setAutoFollow(true);
   }
@@ -394,9 +396,9 @@ function Installer({
   const parsedLines = useMemo(
     () =>
       input
-        .split('\n')
+        .split("\n")
         .map((l) => l.trim())
-        .filter((l) => l && !l.startsWith('#')),
+        .filter((l) => l && !l.startsWith("#")),
     [input],
   );
 
@@ -406,52 +408,72 @@ function Installer({
     setRuns([]);
     setSummary(null);
     setAutoFollow(true);
-    await window.api.installAll(input.split('\n'), {
+    await window.api.installAll(input.split("\n"), {
       agents,
       global: true,
       force,
     });
   }
 
+  runRef.current = run;
+
+  useEffect(() => {
+    function isVisible() {
+      return containerRef.current?.offsetParent !== null;
+    }
+    function handler(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        if (!isVisible()) return;
+        const target = e.target as HTMLElement | null;
+        const tag = target?.tagName;
+        if (tag === "INPUT" && (target as HTMLInputElement).type !== "checkbox") {
+          return;
+        }
+        e.preventDefault();
+        runRef.current();
+      }
+    }
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
   function appendPreset(lines: string[]) {
     setInput((cur) => {
       const existing = new Set(
         cur
-          .split('\n')
+          .split("\n")
           .map((l) => l.trim())
           .filter(Boolean),
       );
       const fresh = lines.filter((l) => !existing.has(l));
       if (!fresh.length) return cur;
       const trimmed = cur.trimEnd();
-      return (trimmed ? trimmed + '\n' : '') + fresh.join('\n') + '\n';
+      return (trimmed ? trimmed + "\n" : "") + fresh.join("\n") + "\n";
     });
   }
 
   function toggleRun(index: number) {
     setRuns((rs) =>
-      rs.map((r) =>
-        r.index === index ? { ...r, expanded: !r.expanded } : r,
-      ),
+      rs.map((r) => (r.index === index ? { ...r, expanded: !r.expanded } : r)),
     );
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
       e.preventDefault();
       run();
     }
   }
 
-  const okCount = runs.filter((r) => r.status === 'ok').length;
-  const errCount = runs.filter((r) => r.status === 'err').length;
-  const skippedCount = runs.filter((r) => r.status === 'skipped').length;
+  const okCount = runs.filter((r) => r.status === "ok").length;
+  const errCount = runs.filter((r) => r.status === "err").length;
+  const skippedCount = runs.filter((r) => r.status === "skipped").length;
   const doneCount = okCount + errCount + skippedCount;
   const totalRuns = runs.length;
   const progress = totalRuns ? (doneCount / totalRuns) * 100 : 0;
 
   return (
-    <div className="bg-canvas flex h-full flex-col">
+    <div ref={containerRef} className="bg-canvas flex h-full flex-col">
       <Titlebar
         running={running}
         parsedCount={parsedLines.length}
@@ -468,8 +490,8 @@ function Installer({
           subtitle="paste owner/repo@skill, one per line"
           right={
             <span className="text-subtle">
-              {parsedLines.length}{' '}
-              {parsedLines.length === 1 ? 'skill' : 'skills'}
+              {parsedLines.length}{" "}
+              {parsedLines.length === 1 ? "skill" : "skills"}
             </span>
           }
         >
@@ -498,7 +520,7 @@ anthropics/skills@frontend-design
               </button>
             ))}
             <button
-              onClick={() => setInput('')}
+              onClick={() => setInput("")}
               disabled={running || !input}
               className="ml-auto rounded-md px-2 py-1 text-[11px] text-subtle transition hover:text-err disabled:opacity-30"
             >
@@ -517,7 +539,7 @@ anthropics/skills@frontend-design
                   Installing
                 </span>
               ) : (
-                `Install ${parsedLines.length || ''}`.trim()
+                `Install ${parsedLines.length || ""}`.trim()
               )}
             </button>
             <kbd className="rounded border border-border bg-panel px-1.5 py-0.5 text-[10px] text-muted">
@@ -542,8 +564,8 @@ anthropics/skills@frontend-design
             running
               ? `${doneCount} of ${totalRuns}`
               : summary
-                ? `${summary.ok} ok${summary.skipped ? ` · ${summary.skipped} already installed` : ''}${summary.fail ? ` · ${summary.fail} failed` : ''}`
-                : 'waiting'
+                ? `${summary.ok} ok${summary.skipped ? ` · ${summary.skipped} already installed` : ""}${summary.fail ? ` · ${summary.fail} failed` : ""}`
+                : "waiting"
           }
           right={
             totalRuns > 0 ? (
@@ -622,7 +644,8 @@ function Titlebar({
   return (
     <header className="titlebar-drag relative flex items-center justify-between border-b border-border px-6 pt-3 pb-3.5 pl-24">
       <div className="min-w-0">
-        <div className="flex items-baseline gap-2.5">
+        <div className="flex items-center gap-2.5">
+          <Logo size={20} className="shrink-0 text-accent" />
           <h1 className="text-[16px] font-semibold tracking-tight">
             Skills Installer
           </h1>
@@ -630,7 +653,7 @@ function Titlebar({
         </div>
         <p className="mt-0.5 truncate text-[11.5px] text-muted">
           <span className="text-accent">--global</span> · agents=
-          <span className="text-accent">{agents.join(',')}</span>
+          <span className="text-accent">{agents.join(",")}</span>
           {rememberAgents ? (
             <span className="text-subtle"> · saved</span>
           ) : (
@@ -651,10 +674,10 @@ function Titlebar({
             installing
           </span>
         ) : summary ? (
-          <span className={summary.fail ? 'text-warn' : 'text-ok'}>
+          <span className={summary.fail ? "text-warn" : "text-ok"}>
             ✓ {summary.ok}
-            {summary.skipped ? ` · skip ${summary.skipped}` : ''}
-            {summary.fail ? ` · ✗ ${summary.fail}` : ''}
+            {summary.skipped ? ` · skip ${summary.skipped}` : ""}
+            {summary.fail ? ` · ✗ ${summary.fail}` : ""}
           </span>
         ) : parsedCount > 0 ? (
           <span className="text-muted">{parsedCount} ready</span>
@@ -705,22 +728,22 @@ function Panel({
 
 function RunCard({ run, onToggle }: { run: Run; onToggle: () => void }) {
   const statusColor =
-    run.status === 'ok'
-      ? 'text-ok'
-      : run.status === 'err'
-        ? 'text-err'
-        : run.status === 'skipped'
-          ? 'text-warn'
-          : run.status === 'running'
-            ? 'text-accent'
-            : 'text-subtle';
+    run.status === "ok"
+      ? "text-ok"
+      : run.status === "err"
+        ? "text-err"
+        : run.status === "skipped"
+          ? "text-warn"
+          : run.status === "running"
+            ? "text-accent"
+            : "text-subtle";
 
   const borderColor =
-    run.status === 'err'
-      ? 'border-err/30'
-      : run.status === 'running'
-        ? 'border-accent/40'
-        : 'border-border';
+    run.status === "err"
+      ? "border-err/30"
+      : run.status === "running"
+        ? "border-accent/40"
+        : "border-border";
 
   return (
     <li
@@ -735,10 +758,12 @@ function RunCard({ run, onToggle }: { run: Run; onToggle: () => void }) {
           <div className="truncate font-mono text-[12.5px] text-text">
             {run.source || run.cmd}
           </div>
-          {run.exitCode !== undefined && run.exitCode !== 0 && run.status === 'err' && (
-            <div className="text-[10.5px] text-err">exit {run.exitCode}</div>
-          )}
-          {run.status === 'skipped' && (
+          {run.exitCode !== undefined &&
+            run.exitCode !== 0 &&
+            run.status === "err" && (
+              <div className="text-[10.5px] text-err">exit {run.exitCode}</div>
+            )}
+          {run.status === "skipped" && (
             <div className="text-[10.5px] text-warn">already installed</div>
           )}
         </div>
@@ -748,7 +773,7 @@ function RunCard({ run, onToggle }: { run: Run; onToggle: () => void }) {
           {run.status}
         </span>
         <span className="text-subtle text-[11px]">
-          {run.expanded ? '−' : '+'}
+          {run.expanded ? "−" : "+"}
         </span>
       </button>
       {run.expanded && run.log.length > 0 && (
@@ -756,7 +781,7 @@ function RunCard({ run, onToggle }: { run: Run; onToggle: () => void }) {
           {run.log.map((l, i) => (
             <span
               key={i}
-              className={l.stream === 'err' ? 'text-err' : 'text-text/85'}
+              className={l.stream === "err" ? "text-err" : "text-text/85"}
             >
               {l.text}
             </span>
@@ -768,15 +793,15 @@ function RunCard({ run, onToggle }: { run: Run; onToggle: () => void }) {
 }
 
 function StatusIcon({ status }: { status: Status }) {
-  if (status === 'running')
+  if (status === "running")
     return (
       <span className="pulse-dot inline-block h-2 w-2 shrink-0 rounded-full bg-accent" />
     );
-  if (status === 'ok')
+  if (status === "ok")
     return <span className="inline-block shrink-0 text-ok">✓</span>;
-  if (status === 'err')
+  if (status === "err")
     return <span className="inline-block shrink-0 text-err">✗</span>;
-  if (status === 'skipped')
+  if (status === "skipped")
     return <span className="inline-block shrink-0 text-warn">↻</span>;
   return (
     <span className="inline-block h-2 w-2 shrink-0 rounded-full border border-subtle" />
@@ -788,10 +813,10 @@ function EmptyState() {
     <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-subtle">
       <div className="text-[13px] text-muted">No runs yet</div>
       <div className="max-w-xs text-[11.5px]">
-        Paste commands and press{' '}
+        Paste commands and press{" "}
         <kbd className="rounded border border-border bg-panel px-1 py-0.5 text-[10px] text-muted">
           ⌘↵
-        </kbd>{' '}
+        </kbd>{" "}
         or click <span className="text-accent">Install</span>.
       </div>
     </div>

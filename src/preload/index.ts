@@ -30,8 +30,11 @@ const api = {
 
   searchSkills: (
     query: string,
-  ): Promise<{ skills: SearchedSkill[]; error: string | null }> =>
+  ): Promise<{ skills: SearchedSkill[]; error: string | null; cached: boolean }> =>
     ipcRenderer.invoke('search-skills', query),
+
+  clearSearchCache: (): Promise<{ ok: boolean }> =>
+    ipcRenderer.invoke('search-cache-clear'),
 
   onPlan: (cb: (e: PlanEvent) => void) => listen('install:plan', cb),
   onStart: (cb: (e: StartEvent) => void) => listen('install:start', cb),
