@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { parseLine, detectAlreadyInstalled } from "./parser";
 import { searchSkills, SkillsApiError, type Skill } from "./skillsApi";
 import { Cache } from "./cache";
+import { cleanCliOutput } from "./cleanCliOutput";
 
 export type InstallOptions = {
   agents: string[];
@@ -156,6 +157,7 @@ function runSingle(p: {
         ...process.env,
         CI: "1",
         FORCE_COLOR: "0",
+        NO_COLOR: "1",
         npm_config_yes: "true",
       },
       stdio: ["ignore", "pipe", "pipe"],
@@ -180,8 +182,10 @@ function runSingle(p: {
 
     const onData = (text: string, stream: "out" | "err") => {
       lastOutputAt = Date.now();
-      if (detectAlreadyInstalled(text)) alreadyInstalled = true;
-      p.send("install:log", { index: p.index, stream, text });
+      const cleaned = cleanCliOutput(text);
+      if (!cleaned) return;
+      if (detectAlreadyInstalled(cleaned)) alreadyInstalled = true;
+      p.send("install:log", { index: p.index, stream, text: cleaned });
     };
 
     child.stdout.on("data", (d) => onData(d.toString(), "out"));
