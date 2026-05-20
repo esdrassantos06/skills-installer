@@ -1,6 +1,6 @@
 {
   "name": "skills-installer",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Desktop GUI to install agent skills from skills.sh in batch for Claude Code, Cursor, Codex, OpenCode, Antigravity, and other agents.",
   "main": "out/main/index.js",
   "license": "MIT",

@@ -2,6 +2,27 @@
 
 Notable changes per version. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.5] - 2026-05-20
+
+### Fixed
+
+- **Windows CI test failures.** `tests/installedSkills.test.ts` was hard-coding POSIX path strings (`/home/test/.claude/skills/foo`) for its expectations. On Windows runners, `path.join` returns backslash-separated paths, so the equality checks failed. Tests now build expected paths via `path.join` so they match the host's separator. Production code was already correct.
+
+### Note
+
+v0.1.4 was tagged but its release build failed in the Windows test job, blocking the consolidated release. v0.1.5 is the same changeset plus this test fix.
+
+## [0.1.5] - 2026-05-20
+
+### Fixed
+
+- **Windows CI test failures.** `tests/installedSkills.test.ts` hard-coded POSIX path strings in expectations, which broke on Windows runners where `path.join` returns backslash-separated paths. Tests now construct expected paths via `path.join` to match the host separator. Production code was already correct.
+- **macOS release artifact upload.** `actions/upload-artifact@v5` does not support brace expansion in its `path` field, so `dist/*.{dmg,zip}` silently matched zero files. Switched the matrix entry to a multi-line block scalar that the action splits into two separate patterns.
+
+### Note
+
+v0.1.4 was tagged but its release pipeline failed on both Windows CI tests and the macOS upload step. v0.1.5 ships the same runtime fixes plus these CI-side corrections.
+
 ## [0.1.4] - 2026-05-20
 
 ### Fixed
