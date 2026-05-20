@@ -104,12 +104,12 @@ Sort options apply to both Featured and search results:
 
 Every parsed line gets these appended unless the line specifies them inline:
 
-| Flag | Default | Override |
-|------|---------|----------|
-| `-y` | always | n/a |
-| `-g` (global install) | yes | inline `--no-global` |
-| `--force` | off | toggle the "force reinstall" checkbox |
-| `-a <agent>` | each agent picked on the first screen | inline `-a cursor` replaces defaults for that line |
+| Flag                  | Default                               | Override                                           |
+| --------------------- | ------------------------------------- | -------------------------------------------------- |
+| `-y`                  | always                                | n/a                                                |
+| `-g` (global install) | yes                                   | inline `--no-global`                               |
+| `--force`             | off                                   | toggle the "force reinstall" checkbox              |
+| `-a <agent>`          | each agent picked on the first screen | inline `-a cursor` replaces defaults for that line |
 
 Tokens you pass inline like `--skill name` or `--branch main` are preserved as-is.
 
@@ -173,16 +173,16 @@ scripts/          generate-icons.mjs
 
 ## Stack
 
-| Layer | Tooling |
-|-------|---------|
-| Bundling | electron-vite 5, Vite 7 |
-| Shell | Electron 42 |
-| UI | React 18, Tailwind v4 (via `@tailwindcss/vite`) |
-| Types | TypeScript 5.7 (strict) |
-| Font | JetBrains Mono Variable, self-hosted via `@fontsource-variable` |
-| Tests | Vitest 4 |
-| Packaging | electron-builder 26 (dmg, nsis, AppImage) |
-| Raster icons | sharp (run `npm run icons` after editing the SVG) |
+| Layer        | Tooling                                                         |
+| ------------ | --------------------------------------------------------------- |
+| Bundling     | electron-vite 5, Vite 7                                         |
+| Shell        | Electron 42                                                     |
+| UI           | React 18, Tailwind v4 (via `@tailwindcss/vite`)                 |
+| Types        | TypeScript 5.7 (strict)                                         |
+| Font         | JetBrains Mono Variable, self-hosted via `@fontsource-variable` |
+| Tests        | Vitest 4                                                        |
+| Packaging    | electron-builder 26 (dmg, nsis, AppImage)                       |
+| Raster icons | sharp (run `npm run icons` after editing the SVG)               |
 
 ## Contributing
 
