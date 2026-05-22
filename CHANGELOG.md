@@ -2,6 +2,17 @@
 
 Notable changes per version. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.6] - 2026-05-22
+
+### Fixed
+
+- **Windows installs failed with `Error: spawn EINVAL`.** Node 20.12.2 and 21.7.3 (CVE-2024-27980 mitigation) refuse to spawn `.cmd` and `.bat` files without `shell: true`. The main process was calling `spawn("npx.cmd", ...)` exactly that way, so every install in the GUI errored out the moment IPC hit `install-all`. Now passes `shell: process.platform === "win32"` so the command goes through `cmd.exe`. macOS and Linux paths are unchanged.
+- **Electron binary postinstall left only `dxil.dll` in `node_modules/electron/dist/`.** The `electron` package depends on `extract-zip@2.0.1` (last release 2020), which silently aborts after the first zip entry on Node 24+. The downloaded zip itself is fine. Added `scripts/ensure-electron-binary.mjs` as the project `postinstall`. It runs the upstream `install.js`, detects partial extraction by looking for the platform binary, locates the cached zip in `@electron/get`'s cache dir, and re-extracts it natively (PowerShell `Expand-Archive` on Windows, `unzip` on macOS and Linux). This replaces the previous postinstall one-liner that just re-ran the same broken `install.js`.
+
+### Changed
+
+- **Install runs 3 commands in parallel.** The main process now uses a worker pool of size 3 (`INSTALL_CONCURRENCY`) instead of a sequential `for` loop. Each run still carries its own `index`, so the renderer's per-card status, log routing, and progress bar work unchanged. Plan ordering is preserved (workers share a single cursor).
+
 ## [0.1.5] - 2026-05-20
 
 ### Fixed

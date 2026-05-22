@@ -14,6 +14,7 @@ export type InstallOptions = {
 };
 
 const HEARTBEAT_MS = 15_000;
+const INSTALL_CONCURRENCY = 3;
 
 const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
 const SEARCH_CACHE_MAX = 100;
@@ -76,39 +77,48 @@ app.whenReady().then(() => {
       let ok = 0;
       let fail = 0;
       let skipped = 0;
+      let nextIdx = 0;
 
-      for (let i = 0; i < parsed.length; i++) {
-        const p = parsed[i];
-        send("install:start", { index: i, cmd: p.display });
+      const worker = async () => {
+        while (true) {
+          const i = nextIdx++;
+          if (i >= parsed.length) return;
+          const p = parsed[i];
+          send("install:start", { index: i, cmd: p.display });
 
-        if (shouldSkip(p.skillNames, installedSet, opts.force)) {
-          send("install:log", {
+          if (shouldSkip(p.skillNames, installedSet, opts.force)) {
+            send("install:log", {
+              index: i,
+              stream: "out",
+              text: `Already installed (${p.skillNames.join(", ")}). Skipping. Toggle "force reinstall" to override.\n`,
+            });
+            send("install:done", { index: i, code: 0, alreadyInstalled: true });
+            skipped++;
+            continue;
+          }
+
+          const result = await runSingle({
             index: i,
-            stream: "out",
-            text: `Already installed (${p.skillNames.join(", ")}). Skipping. Toggle "force reinstall" to override.\n`,
+            npx,
+            args: p.args,
+            send,
           });
-          send("install:done", { index: i, code: 0, alreadyInstalled: true });
-          skipped++;
-          continue;
+
+          send("install:done", {
+            index: i,
+            code: result.code,
+            alreadyInstalled: result.alreadyInstalled,
+          });
+
+          if (result.alreadyInstalled) skipped++;
+          else if (result.code === 0) ok++;
+          else fail++;
         }
+      };
 
-        const result = await runSingle({
-          index: i,
-          npx,
-          args: p.args,
-          send,
-        });
+      const workerCount = Math.min(INSTALL_CONCURRENCY, parsed.length);
+      await Promise.all(Array.from({ length: workerCount }, () => worker()));
 
-        send("install:done", {
-          index: i,
-          code: result.code,
-          alreadyInstalled: result.alreadyInstalled,
-        });
-
-        if (result.alreadyInstalled) skipped++;
-        else if (result.code === 0) ok++;
-        else fail++;
-      }
       send("install:finished", { ok, fail, skipped });
       return { ok, fail, skipped };
     },
@@ -176,6 +186,7 @@ function runSingle(p: {
         npm_config_yes: "true",
       },
       stdio: ["ignore", "pipe", "pipe"],
+      shell: process.platform === "win32",
     });
 
     const heartbeat = setInterval(() => {
