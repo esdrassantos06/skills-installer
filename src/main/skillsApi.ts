@@ -12,13 +12,16 @@ export type SearchResult = {
 };
 
 export class SkillsApiError extends Error {
-  constructor(message: string, public cause?: unknown) {
+  constructor(
+    message: string,
+    public cause?: unknown,
+  ) {
     super(message);
-    this.name = 'SkillsApiError';
+    this.name = "SkillsApiError";
   }
 }
 
-const ENDPOINT = 'https://www.skills.sh/api/search';
+const ENDPOINT = "https://www.skills.sh/api/search";
 const MIN_QUERY = 2;
 
 type FetchLike = typeof fetch;
@@ -30,9 +33,7 @@ export async function searchSkills(
 ): Promise<SearchResult> {
   const trimmed = query.trim();
   if (trimmed.length < MIN_QUERY) {
-    throw new SkillsApiError(
-      `Query must be at least ${MIN_QUERY} characters`,
-    );
+    throw new SkillsApiError(`Query must be at least ${MIN_QUERY} characters`);
   }
 
   const url = `${ENDPOINT}?q=${encodeURIComponent(trimmed)}`;
@@ -40,7 +41,7 @@ export async function searchSkills(
   let res: Response;
   try {
     res = await fetchFn(url, {
-      headers: { Accept: 'application/json' },
+      headers: { Accept: "application/json" },
       signal: options.signal,
     });
   } catch (err) {
@@ -55,7 +56,7 @@ export async function searchSkills(
       /* body unreadable */
     }
     const apiError =
-      body && typeof body === 'object' && 'error' in body
+      body && typeof body === "object" && "error" in body
         ? String((body as { error: unknown }).error)
         : null;
     throw new SkillsApiError(apiError ?? `HTTP ${res.status}`);
@@ -65,11 +66,11 @@ export async function searchSkills(
   try {
     body = await res.json();
   } catch (err) {
-    throw new SkillsApiError('Invalid JSON response', err);
+    throw new SkillsApiError("Invalid JSON response", err);
   }
 
   const raw =
-    body && typeof body === 'object' && 'skills' in body
+    body && typeof body === "object" && "skills" in body
       ? (body as { skills: unknown }).skills
       : [];
 
@@ -81,14 +82,14 @@ export async function searchSkills(
 }
 
 function isSkill(v: unknown): v is Skill {
-  if (!v || typeof v !== 'object') return false;
+  if (!v || typeof v !== "object") return false;
   const o = v as Record<string, unknown>;
   return (
-    typeof o.id === 'string' &&
-    typeof o.skillId === 'string' &&
-    typeof o.name === 'string' &&
-    typeof o.source === 'string' &&
-    typeof o.installs === 'number'
+    typeof o.id === "string" &&
+    typeof o.skillId === "string" &&
+    typeof o.name === "string" &&
+    typeof o.source === "string" &&
+    typeof o.installs === "number"
   );
 }
 

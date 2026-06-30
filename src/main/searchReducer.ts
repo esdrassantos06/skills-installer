@@ -1,11 +1,8 @@
-import type { Skill } from './skillsApi';
-export type { Skill } from './skillsApi';
+import type { Skill } from "./skillsApi";
+export type { Skill } from "./skillsApi";
 
 export type SortMode =
-  | 'installs-desc'
-  | 'installs-asc'
-  | 'name-asc'
-  | 'name-desc';
+  "installs-desc" | "installs-asc" | "name-asc" | "name-desc";
 
 export type SearchState = {
   query: string;
@@ -17,8 +14,8 @@ export type SearchState = {
 };
 
 export const initialState: SearchState = {
-  query: '',
-  sort: 'installs-desc',
+  query: "",
+  sort: "installs-desc",
   loading: false,
   error: null,
   results: [],
@@ -26,20 +23,20 @@ export const initialState: SearchState = {
 };
 
 export type Action =
-  | { type: 'queryChanged'; query: string }
-  | { type: 'searchStarted' }
-  | { type: 'searchSucceeded'; skills: Skill[] }
-  | { type: 'searchFailed'; error: string }
-  | { type: 'sortChanged'; sort: SortMode }
-  | { type: 'cleared' };
+  | { type: "queryChanged"; query: string }
+  | { type: "searchStarted" }
+  | { type: "searchSucceeded"; skills: Skill[] }
+  | { type: "searchFailed"; error: string }
+  | { type: "sortChanged"; sort: SortMode }
+  | { type: "cleared" };
 
 export function reducer(state: SearchState, action: Action): SearchState {
   switch (action.type) {
-    case 'queryChanged':
+    case "queryChanged":
       return { ...state, query: action.query };
-    case 'searchStarted':
+    case "searchStarted":
       return { ...state, loading: true, error: null };
-    case 'searchSucceeded':
+    case "searchSucceeded":
       return {
         ...state,
         loading: false,
@@ -47,7 +44,7 @@ export function reducer(state: SearchState, action: Action): SearchState {
         rawResults: action.skills,
         results: sortSkills(action.skills, state.sort),
       };
-    case 'searchFailed':
+    case "searchFailed":
       return {
         ...state,
         loading: false,
@@ -55,13 +52,13 @@ export function reducer(state: SearchState, action: Action): SearchState {
         rawResults: [],
         results: [],
       };
-    case 'sortChanged':
+    case "sortChanged":
       return {
         ...state,
         sort: action.sort,
         results: sortSkills(state.rawResults, action.sort),
       };
-    case 'cleared':
+    case "cleared":
       return initialState;
   }
 }
@@ -69,19 +66,17 @@ export function reducer(state: SearchState, action: Action): SearchState {
 export function sortSkills(skills: Skill[], sort: SortMode): Skill[] {
   const copy = [...skills];
   switch (sort) {
-    case 'installs-desc':
+    case "installs-desc":
       return copy.sort(
-        (a, b) =>
-          b.installs - a.installs || a.name.localeCompare(b.name),
+        (a, b) => b.installs - a.installs || a.name.localeCompare(b.name),
       );
-    case 'installs-asc':
+    case "installs-asc":
       return copy.sort(
-        (a, b) =>
-          a.installs - b.installs || a.name.localeCompare(b.name),
+        (a, b) => a.installs - b.installs || a.name.localeCompare(b.name),
       );
-    case 'name-asc':
+    case "name-asc":
       return copy.sort((a, b) => a.name.localeCompare(b.name));
-    case 'name-desc':
+    case "name-desc":
       return copy.sort((a, b) => b.name.localeCompare(a.name));
   }
 }

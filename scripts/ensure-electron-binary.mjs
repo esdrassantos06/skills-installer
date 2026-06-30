@@ -88,8 +88,7 @@ const cacheRoots = [];
 if (process.env.electron_config_cache)
   cacheRoots.push(process.env.electron_config_cache);
 if (platform === "win32") {
-  const local =
-    process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local");
+  const local = process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local");
   cacheRoots.push(join(local, "electron", "Cache"));
 } else if (platform === "darwin") {
   cacheRoots.push(join(homedir(), "Library", "Caches", "electron"));

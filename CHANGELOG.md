@@ -2,6 +2,18 @@
 
 Notable changes per version. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.7] - 2026-06-30
+
+### Added
+
+- **Developer tooling: ESLint 10 (flat config) + Prettier**, with Prettier wired through ESLint (`eslint-plugin-prettier`). New scripts: `lint`, `lint:fix`, `format`, `format:check`. Config lives in `eslint.config.mjs` (using `defineConfig` from `eslint/config`), `.prettierrc.json`, and `.prettierignore`. Rules are scoped per area (renderer uses browser globals, main and preload use node globals), with React Hooks and React Refresh rules on the renderer. Narrow, intentional relaxations: `no-control-regex` off in `cleanCliOutput.ts` (ANSI stripping), `@typescript-eslint/no-explicit-any` off in tests.
+- **CI `lint` job** runs `npm run lint` and `npm run format:check` on every push and pull request.
+
+### Changed
+
+- **Execution panel auto-follow now tracks the active install** (the one running, or the next one pending) instead of scrolling to the very bottom of the list past the still-pending items. The floating follow button re-targets the active card, and follow disengages only when that card scrolls out of view.
+- Repository formatted with Prettier. Formatting only, no behavior changes.
+
 ## [0.1.6] - 2026-05-22
 
 ### Fixed

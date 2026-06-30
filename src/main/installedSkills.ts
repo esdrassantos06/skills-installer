@@ -1,6 +1,6 @@
-import { existsSync } from 'node:fs';
-import { homedir as defaultHomedir } from 'node:os';
-import { join } from 'node:path';
+import { existsSync } from "node:fs";
+import { homedir as defaultHomedir } from "node:os";
+import { join } from "node:path";
 
 /**
  * Pre-flight check for "already installed" skills, by filesystem inspection.
@@ -26,15 +26,15 @@ const defaultDeps: Deps = {
 };
 
 const INSTALL_DIRS = [
-  '.claude/skills',
-  '.cursor/skills',
-  '.codex/skills',
-  '.opencode/skills',
-  '.gemini/antigravity/skills',
-  '.windsurf/skills',
-  '.continue/skills',
-  '.copilot/skills',
-  '.agents/skills',
+  ".claude/skills",
+  ".cursor/skills",
+  ".codex/skills",
+  ".opencode/skills",
+  ".gemini/antigravity/skills",
+  ".windsurf/skills",
+  ".continue/skills",
+  ".copilot/skills",
+  ".agents/skills",
 ];
 
 export async function getInstalledSkillNames(

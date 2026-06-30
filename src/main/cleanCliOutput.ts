@@ -23,29 +23,29 @@ const SIMPLE_ESC_REGEX = /\x1B[78@-Z\\-_]/g;
 const SPINNER_CHARS = /^[◒◐◓◑◴◷◶◵⣾⣽⣻⢿⡿⣟⣯⣷●○\s]+/;
 
 export function cleanCliOutput(text: string): string {
-  if (!text) return '';
+  if (!text) return "";
 
   const stripped = text
-    .replace(NEWLINE_CSI_REGEX, '\n')
-    .replace(INLINE_ERASE_REGEX, '')
-    .replace(CSI_REGEX, '')
-    .replace(SIMPLE_ESC_REGEX, '')
-    .replace(/\r\n?/g, '\n');
+    .replace(NEWLINE_CSI_REGEX, "\n")
+    .replace(INLINE_ERASE_REGEX, "")
+    .replace(CSI_REGEX, "")
+    .replace(SIMPLE_ESC_REGEX, "")
+    .replace(/\r\n?/g, "\n");
 
   return dedupConsecutive(stripped);
 }
 
 function dedupConsecutive(text: string): string {
-  const lines = text.split('\n');
+  const lines = text.split("\n");
   const out: string[] = [];
   let lastNormalized: string | null = null;
 
   for (const line of lines) {
-    const normalized = line.replace(SPINNER_CHARS, '').trim();
+    const normalized = line.replace(SPINNER_CHARS, "").trim();
     if (normalized && normalized === lastNormalized) continue;
     if (normalized) lastNormalized = normalized;
     out.push(line);
   }
 
-  return out.join('\n').replace(/\n{3,}/g, '\n\n');
+  return out.join("\n").replace(/\n{3,}/g, "\n\n");
 }

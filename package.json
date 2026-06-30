@@ -1,6 +1,6 @@
 {
   "name": "skills-installer",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Desktop GUI to install agent skills from skills.sh in batch for Claude Code, Cursor, Codex, OpenCode, Antigravity, and other agents.",
   "main": "out/main/index.js",
   "license": "MIT",
@@ -36,6 +36,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
@@ -44,6 +48,7 @@
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.2.15",
@@ -53,9 +58,17 @@
     "electron": "^42.1.0",
     "electron-builder": "^26.8.1",
     "electron-vite": "^5.0.0",
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.4",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.3.0",
     "typescript": "^5.7.2",
+    "typescript-eslint": "^8.62.1",
     "vite": "^7.1.13",
     "vitest": "^4.1.6"
   }

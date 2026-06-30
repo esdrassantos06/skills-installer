@@ -1,8 +1,12 @@
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
 
-export type LogEvent = { index: number; stream: 'out' | 'err'; text: string };
+export type LogEvent = { index: number; stream: "out" | "err"; text: string };
 export type StartEvent = { index: number; cmd: string };
-export type DoneEvent = { index: number; code: number; alreadyInstalled: boolean };
+export type DoneEvent = {
+  index: number;
+  code: number;
+  alreadyInstalled: boolean;
+};
 export type HeartbeatEvent = { index: number; idleMs: number };
 export type PlanEvent = {
   total: number;
@@ -26,24 +30,27 @@ export type SearchedSkill = {
 
 const api = {
   installAll: (lines: string[], opts: InstallOptions): Promise<FinishedEvent> =>
-    ipcRenderer.invoke('install-all', lines, opts),
+    ipcRenderer.invoke("install-all", lines, opts),
 
   searchSkills: (
     query: string,
-  ): Promise<{ skills: SearchedSkill[]; error: string | null; cached: boolean }> =>
-    ipcRenderer.invoke('search-skills', query),
+  ): Promise<{
+    skills: SearchedSkill[];
+    error: string | null;
+    cached: boolean;
+  }> => ipcRenderer.invoke("search-skills", query),
 
   clearSearchCache: (): Promise<{ ok: boolean }> =>
-    ipcRenderer.invoke('search-cache-clear'),
+    ipcRenderer.invoke("search-cache-clear"),
 
-  onPlan: (cb: (e: PlanEvent) => void) => listen('install:plan', cb),
-  onStart: (cb: (e: StartEvent) => void) => listen('install:start', cb),
-  onLog: (cb: (e: LogEvent) => void) => listen('install:log', cb),
-  onDone: (cb: (e: DoneEvent) => void) => listen('install:done', cb),
+  onPlan: (cb: (e: PlanEvent) => void) => listen("install:plan", cb),
+  onStart: (cb: (e: StartEvent) => void) => listen("install:start", cb),
+  onLog: (cb: (e: LogEvent) => void) => listen("install:log", cb),
+  onDone: (cb: (e: DoneEvent) => void) => listen("install:done", cb),
   onHeartbeat: (cb: (e: HeartbeatEvent) => void) =>
-    listen('install:heartbeat', cb),
+    listen("install:heartbeat", cb),
   onFinished: (cb: (e: FinishedEvent) => void) =>
-    listen('install:finished', cb),
+    listen("install:finished", cb),
 };
 
 function listen<T>(channel: string, cb: (e: T) => void) {
@@ -52,5 +59,5 @@ function listen<T>(channel: string, cb: (e: T) => void) {
   return () => ipcRenderer.off(channel, listener);
 }
 
-contextBridge.exposeInMainWorld('api', api);
+contextBridge.exposeInMainWorld("api", api);
 export type Api = typeof api;
