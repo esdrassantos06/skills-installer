@@ -1,6 +1,6 @@
 {
   "name": "skills-installer",
-  "version": "0.1.7",
+  "version": "1.0.0",
   "description": "Desktop GUI to install agent skills from skills.sh in batch for Claude Code, Cursor, Codex, OpenCode, Antigravity, and other agents.",
   "main": "out/main/index.js",
   "license": "MIT",
@@ -50,6 +50,9 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.10.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
@@ -64,6 +67,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
+    "jsdom": "^29.1.1",
     "prettier": "^3.9.4",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.3.0",

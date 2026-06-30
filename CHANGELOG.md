@@ -2,17 +2,27 @@
 
 Notable changes per version. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
-## [0.1.7] - 2026-06-30
+## [1.0.0] - 2026-06-30
+
+First stable release. Consolidates the tooling, accessibility, test-suite, and renderer-architecture work.
 
 ### Added
 
 - **Developer tooling: ESLint 10 (flat config) + Prettier**, with Prettier wired through ESLint (`eslint-plugin-prettier`). New scripts: `lint`, `lint:fix`, `format`, `format:check`. Config lives in `eslint.config.mjs` (using `defineConfig` from `eslint/config`), `.prettierrc.json`, and `.prettierignore`. Rules are scoped per area (renderer uses browser globals, main and preload use node globals), with React Hooks and React Refresh rules on the renderer. Narrow, intentional relaxations: `no-control-regex` off in `cleanCliOutput.ts` (ANSI stripping), `@typescript-eslint/no-explicit-any` off in tests.
 - **CI `lint` job** runs `npm run lint` and `npm run format:check` on every push and pull request.
+- **Renderer test suite** (Vitest + Testing Library + jsdom), split into `node` and `renderer` Vitest projects. Covers the new business-rule modules and hooks: the install run state machine (`runsReducer`), auto-follow target selection, featured ranking, debounced search, featured fetching, plus line parsing and install-count formatting.
 
 ### Changed
 
 - **Execution panel auto-follow now tracks the active install** (the one running, or the next one pending) instead of scrolling to the very bottom of the list past the still-pending items. The floating follow button re-targets the active card, and follow disengages only when that card scrolls out of view.
+- **Renderer decomposed into a feature-folder structure.** The two large `App.tsx` and `SearchPage.tsx` files were split into `features/installer`, `features/search`, `features/shell`, shared `components/`, and `lib/`. Logic moved into custom hooks (`useInstallRuns`, `useAutoFollow`, `useSkillSearch`, `useFeaturedSkills`) and pure modules, leaving presentational components stateless.
+- **Accessibility improvements.** Real tab semantics (`role="tablist"`/`tab"`/`tabpanel"` with `aria-selected`/`aria-controls`), `aria-expanded` on run cards, `role="progressbar"` with value attributes on the progress bars, a labelled commands textarea, and decorative icons marked `aria-hidden`.
+- **Fixed the `react-hooks/set-state-in-effect` warning** in the featured-skills loader: state is now only set inside the async callback (loading starts from initial state, retries set it from the event handler), so the lint rule stays at full strength with no suppressions.
 - Repository formatted with Prettier. Formatting only, no behavior changes.
+
+### Performance
+
+- `summarizeRuns` and `activeRunIndex` now compute in a single pass over the runs array instead of multiple `filter`/`find` traversals. Same results, fewer iterations.
 
 ## [0.1.6] - 2026-05-22
 

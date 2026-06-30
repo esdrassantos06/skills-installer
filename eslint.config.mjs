@@ -30,7 +30,6 @@ export default defineConfig([
     },
     rules: {
       ...reactHooks.configs["recommended-latest"].rules,
-      "react-hooks/set-state-in-effect": "warn",
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },
