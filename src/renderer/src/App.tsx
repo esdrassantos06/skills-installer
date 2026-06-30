@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   DoneEvent,
   FinishedEvent,
@@ -29,6 +29,21 @@ const INPUT_KEY = "skills-installer:input";
 const AGENTS_KEY = "skills-installer:agents";
 const REMEMBER_KEY = "skills-installer:remember-agents";
 const FORCE_KEY = "skills-installer:force";
+
+const FOLLOW_TOP_GAP = 12;
+
+function appendUniqueLines(current: string, lines: string[]): string {
+  const existing = new Set(
+    current
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean),
+  );
+  const fresh = lines.filter((l) => !existing.has(l));
+  if (!fresh.length) return current;
+  const trimmed = current.trimEnd();
+  return (trimmed ? trimmed + "\n" : "") + fresh.join("\n") + "\n";
+}
 
 const PRESETS: { label: string; hint: string; lines: string[] }[] = [
   {
@@ -213,17 +228,7 @@ function Shell({
 
   function appendSkill(skill: Skill) {
     const line = `${skill.source}@${skill.skillId}`;
-    setInput((cur) => {
-      const existing = new Set(
-        cur
-          .split("\n")
-          .map((l) => l.trim())
-          .filter(Boolean),
-      );
-      if (existing.has(line)) return cur;
-      const trimmed = cur.trimEnd();
-      return (trimmed ? trimmed + "\n" : "") + line + "\n";
-    });
+    setInput((cur) => appendUniqueLines(cur, [line]));
   }
 
   return (
@@ -319,6 +324,7 @@ function Installer({
   const runsRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const runRef = useRef<() => void>(() => {});
+  const selfScroll = useRef(false);
 
   useEffect(() => {
     localStorage.setItem(FORCE_KEY, force ? "1" : "0");
@@ -381,24 +387,44 @@ function Installer({
     return () => offs.forEach((off) => off());
   }, []);
 
+  const activeIndex = useMemo(() => {
+    const active =
+      runs.find((r) => r.status === "running") ??
+      runs.find((r) => r.status === "pending");
+    return active ? active.index : -1;
+  }, [runs]);
+
+  const activeElement = useCallback((): HTMLElement | null => {
+    const container = runsRef.current;
+    if (!container || activeIndex < 0) return null;
+    return container.querySelector<HTMLElement>(
+      `[data-run-index="${activeIndex}"]`,
+    );
+  }, [activeIndex]);
+
   useEffect(() => {
-    if (!autoFollow || !runsRef.current) return;
-    runsRef.current.scrollTop = runsRef.current.scrollHeight;
-  }, [runs, autoFollow]);
+    if (!autoFollow) return;
+    const container = runsRef.current;
+    const el = activeElement();
+    if (!container || !el) return;
+    const top = Math.max(0, el.offsetTop - FOLLOW_TOP_GAP);
+    if (container.scrollTop === top) return;
+    selfScroll.current = true;
+    container.scrollTop = top;
+  }, [runs, autoFollow, activeElement]);
 
-  function onScroll(e: React.UIEvent<HTMLDivElement>) {
-    const el = e.currentTarget;
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
-    setAutoFollow(atBottom);
-  }
-
-  function scrollToBottom() {
-    if (!runsRef.current) return;
-    runsRef.current.scrollTo({
-      top: runsRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-    setAutoFollow(true);
+  function onScroll() {
+    if (selfScroll.current) {
+      selfScroll.current = false;
+      return;
+    }
+    const container = runsRef.current;
+    const el = activeElement();
+    if (!container || !el) return;
+    const top = el.offsetTop - container.scrollTop;
+    const visible =
+      top + el.offsetHeight > 24 && top < container.clientHeight - 24;
+    setAutoFollow(visible);
   }
 
   const parsedLines = useMemo(
@@ -423,7 +449,9 @@ function Installer({
     });
   }
 
-  runRef.current = run;
+  useEffect(() => {
+    runRef.current = run;
+  });
 
   useEffect(() => {
     function isVisible() {
@@ -449,18 +477,7 @@ function Installer({
   }, []);
 
   function appendPreset(lines: string[]) {
-    setInput((cur) => {
-      const existing = new Set(
-        cur
-          .split("\n")
-          .map((l) => l.trim())
-          .filter(Boolean),
-      );
-      const fresh = lines.filter((l) => !existing.has(l));
-      if (!fresh.length) return cur;
-      const trimmed = cur.trimEnd();
-      return (trimmed ? trimmed + "\n" : "") + fresh.join("\n") + "\n";
-    });
+    setInput((cur) => appendUniqueLines(cur, lines));
   }
 
   function toggleRun(index: number) {
@@ -620,12 +637,12 @@ anthropics/skills@frontend-design
                 </ul>
               )}
             </div>
-            {!autoFollow && runs.length > 0 && (
+            {!autoFollow && activeIndex >= 0 && (
               <button
-                onClick={scrollToBottom}
+                onClick={() => setAutoFollow(true)}
                 className="absolute right-4 bottom-4 flex items-center gap-1.5 rounded-full border border-border bg-panel/95 px-3 py-1.5 text-[11px] text-text shadow-lg backdrop-blur transition hover:border-accent hover:text-accent"
               >
-                ↓ follow
+                ◎ follow active
               </button>
             )}
           </div>
@@ -758,6 +775,7 @@ function RunCard({ run, onToggle }: { run: Run; onToggle: () => void }) {
 
   return (
     <li
+      data-run-index={run.index}
       className={`overflow-hidden rounded-lg border ${borderColor} bg-panel-2/40 transition`}
     >
       <button
