@@ -1,42 +1,42 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from "react";
 import {
   reducer,
   initialState,
   sortSkills,
   type SortMode,
   type Skill,
-} from '../../../src/main/searchReducer';
+} from "../../../src/main/searchReducer";
 
 type Props = {
   onAddToInstaller: (skill: Skill) => void;
 };
 
 const SUGGESTIONS = [
-  'react',
-  'nextjs',
-  'typescript',
-  'design',
-  'testing',
-  'security',
-  'docs',
+  "react",
+  "nextjs",
+  "typescript",
+  "design",
+  "testing",
+  "security",
+  "docs",
 ];
 
 const FEATURED_SEED_QUERIES = [
-  'react',
-  'design',
-  'testing',
-  'security',
-  'docs',
-  'typescript',
-  'nextjs',
-  'best-practices',
+  "react",
+  "design",
+  "testing",
+  "security",
+  "docs",
+  "typescript",
+  "nextjs",
+  "best-practices",
 ];
 
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
-  { value: 'installs-desc', label: 'Featured' },
-  { value: 'installs-asc', label: 'Fewest installs' },
-  { value: 'name-asc', label: 'A–Z' },
-  { value: 'name-desc', label: 'Z–A' },
+  { value: "installs-desc", label: "Featured" },
+  { value: "installs-asc", label: "Fewest installs" },
+  { value: "name-asc", label: "A–Z" },
+  { value: "name-desc", label: "Z–A" },
 ];
 
 export function SearchPage({ onAddToInstaller }: Props) {
@@ -84,10 +84,10 @@ export function SearchPage({ onAddToInstaller }: Props) {
     const q = state.query.trim();
     if (q.length < 2) return;
     debounceRef.current = window.setTimeout(async () => {
-      dispatch({ type: 'searchStarted' });
+      dispatch({ type: "searchStarted" });
       const r = await window.api.searchSkills(q);
-      if (r.error) dispatch({ type: 'searchFailed', error: r.error });
-      else dispatch({ type: 'searchSucceeded', skills: r.skills });
+      if (r.error) dispatch({ type: "searchFailed", error: r.error });
+      else dispatch({ type: "searchSucceeded", skills: r.skills });
     }, 300);
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
@@ -110,7 +110,7 @@ export function SearchPage({ onAddToInstaller }: Props) {
           <input
             value={state.query}
             onChange={(e) =>
-              dispatch({ type: 'queryChanged', query: e.target.value })
+              dispatch({ type: "queryChanged", query: e.target.value })
             }
             placeholder="Search skills on skills.sh (min 2 characters)"
             className="w-full rounded-md border border-border bg-panel px-3 py-2 pl-9 text-[13px] outline-none placeholder:text-subtle focus:border-accent"
@@ -133,10 +133,10 @@ export function SearchPage({ onAddToInstaller }: Props) {
         </div>
         <SortMenu
           value={state.sort}
-          onChange={(s) => dispatch({ type: 'sortChanged', sort: s })}
+          onChange={(s) => dispatch({ type: "sortChanged", sort: s })}
         />
         <button
-          onClick={() => dispatch({ type: 'cleared' })}
+          onClick={() => dispatch({ type: "cleared" })}
           disabled={!state.query && state.rawResults.length === 0}
           className="rounded-md border border-border bg-panel px-2.5 py-2 text-[12px] text-muted transition hover:border-err hover:text-err disabled:opacity-40"
         >
@@ -147,7 +147,7 @@ export function SearchPage({ onAddToInstaller }: Props) {
       <div className="min-h-0 flex-1 overflow-auto px-4 py-4">
         {isHome ? (
           <HomeView
-            onPick={(q) => dispatch({ type: 'queryChanged', query: q })}
+            onPick={(q) => dispatch({ type: "queryChanged", query: q })}
             featured={sortedFeatured}
             featuredLoading={featuredLoading}
             sort={state.sort}
@@ -168,7 +168,8 @@ export function SearchPage({ onAddToInstaller }: Props) {
           role="status"
           className="border-t border-accent bg-accent-soft px-4 py-2 text-[12px] text-accent"
         >
-          ✓ Added to your list. Switch to the <strong>Installer</strong> tab to install.
+          ✓ Added to your list. Switch to the <strong>Installer</strong> tab to
+          install.
         </div>
       )}
     </div>
@@ -196,8 +197,8 @@ function SortMenu({
           onClick={() => onChange(opt.value)}
           className={`rounded px-2 py-1 text-[11px] transition ${
             value === opt.value
-              ? 'bg-accent-soft text-accent'
-              : 'text-muted hover:text-text'
+              ? "bg-accent-soft text-accent"
+              : "text-muted hover:text-text"
           }`}
         >
           {opt.label}
@@ -223,7 +224,7 @@ function HomeView({
   onRetry: () => void;
 }) {
   const sortLabel =
-    SORT_OPTIONS.find((o) => o.value === sort)?.label ?? 'Featured';
+    SORT_OPTIONS.find((o) => o.value === sort)?.label ?? "Featured";
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -256,7 +257,7 @@ function HomeView({
           </h3>
           <span className="text-[11px] text-subtle">
             {featuredLoading
-              ? 'loading…'
+              ? "loading…"
               : `${featured.length} skills across categories`}
           </span>
         </div>
@@ -266,8 +267,8 @@ function HomeView({
           <div className="rounded-lg border border-border bg-panel/60 p-5 text-center text-[12.5px] text-muted">
             <div className="text-text">No featured skills loaded yet</div>
             <div className="mt-1.5 text-[11.5px]">
-              The skills.sh API rate-limited this batch. Wait a few seconds
-              and try again.
+              The skills.sh API rate-limited this batch. Wait a few seconds and
+              try again.
             </div>
             <button
               onClick={onRetry}
@@ -287,9 +288,9 @@ function HomeView({
         </div>
         <p>
           The public skills.sh API returns id, source, name, and install count
-          only. No timestamps. The Featured list is the union of the top
-          results across a handful of broad categories, deduplicated and
-          sorted by install count. Queries require at least 2 characters.
+          only. No timestamps. The Featured list is the union of the top results
+          across a handful of broad categories, deduplicated and sorted by
+          install count. Queries require at least 2 characters.
         </p>
       </div>
     </div>
@@ -381,7 +382,7 @@ function ErrorView({ error }: { error: string }) {
 }
 
 function formatInstalls(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
   return String(n);
 }

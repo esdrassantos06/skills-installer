@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { KNOWN_AGENTS } from './agents';
-import { Logo } from './Logo';
+import { useState } from "react";
+import { KNOWN_AGENTS } from "./agents";
+import { Logo } from "./Logo";
 
 type Props = {
   initial: string[];
@@ -10,9 +10,9 @@ type Props = {
 
 export function AgentSelect({ initial, rememberInitial, onConfirm }: Props) {
   const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(initial.length ? initial : ['claude-code']),
+    () => new Set(initial.length ? initial : ["claude-code"]),
   );
-  const [custom, setCustom] = useState('');
+  const [custom, setCustom] = useState("");
   const [remember, setRemember] = useState(rememberInitial);
 
   function toggle(id: string) {
@@ -28,7 +28,7 @@ export function AgentSelect({ initial, rememberInitial, onConfirm }: Props) {
     const v = custom.trim();
     if (!v) return;
     setSelected((prev) => new Set([...prev, v]));
-    setCustom('');
+    setCustom("");
   }
 
   function confirm() {
@@ -61,15 +61,15 @@ export function AgentSelect({ initial, rememberInitial, onConfirm }: Props) {
                 onClick={() => toggle(a.id)}
                 className={`group flex items-start gap-2.5 rounded-lg border px-3 py-2.5 text-left transition ${
                   on
-                    ? 'border-accent bg-accent-soft'
-                    : 'border-border bg-panel hover:border-border-strong'
+                    ? "border-accent bg-accent-soft"
+                    : "border-border bg-panel hover:border-border-strong"
                 }`}
               >
                 <span
                   className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] font-bold ${
                     on
-                      ? 'border-accent bg-accent text-bg'
-                      : 'border-border-strong text-transparent'
+                      ? "border-accent bg-accent text-bg"
+                      : "border-border-strong text-transparent"
                   }`}
                 >
                   ✓
@@ -111,7 +111,7 @@ export function AgentSelect({ initial, rememberInitial, onConfirm }: Props) {
             value={custom}
             onChange={(e) => setCustom(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') addCustom();
+              if (e.key === "Enter") addCustom();
             }}
             placeholder="custom agent (e.g. kilocode)"
             className="flex-1 rounded-md border border-border bg-panel px-3 py-1.5 text-[12px] outline-none placeholder:text-subtle focus:border-accent"
@@ -137,7 +137,7 @@ export function AgentSelect({ initial, rememberInitial, onConfirm }: Props) {
 
         <div className="mt-6 flex items-center justify-between">
           <span className="text-[11px] text-subtle">
-            {selected.size} agent{selected.size === 1 ? '' : 's'} selected
+            {selected.size} agent{selected.size === 1 ? "" : "s"} selected
           </span>
           <button
             onClick={confirm}

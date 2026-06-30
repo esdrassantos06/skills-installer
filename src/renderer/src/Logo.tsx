@@ -1,6 +1,6 @@
 type Props = {
   size?: number;
-  variant?: 'icon' | 'mark';
+  variant?: "icon" | "mark";
   className?: string;
 };
 
@@ -10,8 +10,8 @@ type Props = {
  * variant="icon" → rounded dark tile + S monogram + ambient glow (use as app icon)
  * variant="mark" → S monogram only on transparent bg (use inline with text)
  */
-export function Logo({ size = 32, variant = 'mark', className }: Props) {
-  if (variant === 'icon') {
+export function Logo({ size = 32, variant = "mark", className }: Props) {
+  if (variant === "icon") {
     return (
       <svg
         width={size}

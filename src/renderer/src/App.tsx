@@ -434,7 +434,10 @@ function Installer({
         if (!isVisible()) return;
         const target = e.target as HTMLElement | null;
         const tag = target?.tagName;
-        if (tag === "INPUT" && (target as HTMLInputElement).type !== "checkbox") {
+        if (
+          tag === "INPUT" &&
+          (target as HTMLInputElement).type !== "checkbox"
+        ) {
           return;
         }
         e.preventDefault();

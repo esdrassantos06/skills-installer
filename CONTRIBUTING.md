@@ -51,7 +51,7 @@ The parser, the search reducer, the skills.sh client, and the cache are all pure
 
 - TypeScript strict mode. No `any` unless you can defend it in review.
 - Prefer editing existing files over creating new ones.
-- Comments are for the *why*, not the *what*. Document a non-obvious constraint or a workaround for a specific bug.
+- Comments are for the _why_, not the _what_. Document a non-obvious constraint or a workaround for a specific bug.
 - UI strings live inline. No i18n yet.
 - No em-dashes (`—`) in writing. Period, colon, parenthesis, or restructure.
 
