@@ -2,6 +2,17 @@
 
 Notable changes per version. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] - 2026-06-30
+
+### Added
+
+- **Footer with social links.** A slim footer in the app shell links to the author's GitHub, LinkedIn, and portfolio, opening in the external browser.
+
+### Changed
+
+- **Removed the default application menu bar** (File / Edit / View / Window) on Windows and Linux, which the app does not use. It is kept on macOS, where the menu lives in the system bar and clipboard shortcuts depend on it.
+- Replaced equal width/height utility pairs (`h-* w-*`) with the Tailwind `size-*` shorthand across components.
+
 ## [1.1.0] - 2026-06-30
 
 Performance, scalability, and security pass for installing many skills at once.

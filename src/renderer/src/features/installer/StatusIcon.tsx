@@ -5,7 +5,7 @@ export function StatusIcon({ status }: { status: Status }) {
     return (
       <span
         aria-hidden
-        className="pulse-dot inline-block h-2 w-2 shrink-0 rounded-full bg-accent"
+        className="pulse-dot inline-block size-2 shrink-0 rounded-full bg-accent"
       />
     );
   if (status === "ok")
@@ -29,7 +29,7 @@ export function StatusIcon({ status }: { status: Status }) {
   return (
     <span
       aria-hidden
-      className="inline-block h-2 w-2 shrink-0 rounded-full border border-subtle"
+      className="inline-block size-2 shrink-0 rounded-full border border-subtle"
     />
   );
 }

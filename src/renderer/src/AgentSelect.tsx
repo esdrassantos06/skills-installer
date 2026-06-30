@@ -66,7 +66,7 @@ export function AgentSelect({ initial, rememberInitial, onConfirm }: Props) {
                 }`}
               >
                 <span
-                  className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] font-bold ${
+                  className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border text-[10px] font-bold ${
                     on
                       ? "border-accent bg-accent text-bg"
                       : "border-border-strong text-transparent"
@@ -130,7 +130,7 @@ export function AgentSelect({ initial, rememberInitial, onConfirm }: Props) {
             type="checkbox"
             checked={remember}
             onChange={(e) => setRemember(e.target.checked)}
-            className="h-3.5 w-3.5 accent-accent"
+            className="size-3.5 accent-accent"
           />
           Remember for next sessions
         </label>

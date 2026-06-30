@@ -85,7 +85,7 @@ anthropics/skills@frontend-design
         >
           {running ? (
             <span className="inline-flex items-center gap-2">
-              <span className="pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-bg" />
+              <span className="pulse-dot inline-block size-1.5 rounded-full bg-bg" />
               Installing
             </span>
           ) : (
@@ -101,7 +101,7 @@ anthropics/skills@frontend-design
             checked={force}
             onChange={(e) => setForce(e.target.checked)}
             disabled={running}
-            className="h-3 w-3 accent-accent"
+            className="size-3 accent-accent"
           />
           force reinstall
         </label>

@@ -47,7 +47,7 @@ export function InstallerTitlebar({
         </button>
         {running ? (
           <span className="inline-flex items-center gap-1.5 text-accent">
-            <span className="pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-accent" />
+            <span className="pulse-dot inline-block size-1.5 rounded-full bg-accent" />
             installing
           </span>
         ) : summary ? (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Skill } from "../../../../main/searchReducer";
 import { Tabs, type Tab } from "../../components/Tabs";
+import { Footer } from "../../components/Footer";
 import { appendUniqueLines } from "../../lib/lines";
 import { VIEW_KEY, INPUT_KEY } from "../../lib/storageKeys";
 import { Installer } from "../installer/Installer";
@@ -69,6 +70,7 @@ export function Shell({
           <SearchPage onAddToInstaller={appendSkill} />
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, session, shell } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, session, shell } from "electron";
 import { spawn } from "node:child_process";
 import { availableParallelism } from "node:os";
 import { join } from "node:path";
@@ -64,6 +64,10 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  if (process.platform !== "darwin") {
+    Menu.setApplicationMenu(null);
+  }
+
   const csp = contentSecurityPolicy(!!process.env["ELECTRON_RENDERER_URL"]);
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
