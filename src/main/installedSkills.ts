@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { access } from "node:fs/promises";
 import { homedir as defaultHomedir } from "node:os";
 import { join } from "node:path";
 
@@ -17,12 +17,19 @@ import { join } from "node:path";
  */
 export type Deps = {
   homedir: () => string;
-  pathExists: (path: string) => boolean;
+  pathExists: (path: string) => boolean | Promise<boolean>;
 };
 
 const defaultDeps: Deps = {
   homedir: defaultHomedir,
-  pathExists: existsSync,
+  pathExists: async (path: string) => {
+    try {
+      await access(path);
+      return true;
+    } catch {
+      return false;
+    }
+  },
 };
 
 const INSTALL_DIRS = [
@@ -42,17 +49,20 @@ export async function getInstalledSkillNames(
   deps: Deps = defaultDeps,
 ): Promise<Set<string>> {
   const out = new Set<string>();
-  if (candidates.length === 0) return out;
+  const unique = [...new Set(candidates)];
+  if (unique.length === 0) return out;
 
   const home = deps.homedir();
-  for (const name of candidates) {
-    for (const dir of INSTALL_DIRS) {
-      if (deps.pathExists(join(home, dir, name))) {
-        out.add(name);
-        break;
+  await Promise.all(
+    unique.map(async (name) => {
+      for (const dir of INSTALL_DIRS) {
+        if (await deps.pathExists(join(home, dir, name))) {
+          out.add(name);
+          return;
+        }
       }
-    }
-  }
+    }),
+  );
   return out;
 }
 

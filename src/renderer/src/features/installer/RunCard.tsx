@@ -1,7 +1,14 @@
+import { memo } from "react";
 import { StatusIcon } from "./StatusIcon";
 import type { Run } from "./runsReducer";
 
-export function RunCard({ run, onToggle }: { run: Run; onToggle: () => void }) {
+export const RunCard = memo(function RunCard({
+  run,
+  onToggle,
+}: {
+  run: Run;
+  onToggle: () => void;
+}) {
   const statusColor =
     run.status === "ok"
       ? "text-ok"
@@ -26,7 +33,7 @@ export function RunCard({ run, onToggle }: { run: Run; onToggle: () => void }) {
   return (
     <li
       data-run-index={run.index}
-      className={`overflow-hidden rounded-lg border ${borderColor} bg-panel-2/40 transition`}
+      className={`overflow-hidden rounded-lg border ${borderColor} bg-panel-2/40 transition [content-visibility:auto] [contain-intrinsic-size:auto_56px]`}
     >
       <button
         onClick={onToggle}
@@ -71,4 +78,4 @@ export function RunCard({ run, onToggle }: { run: Run; onToggle: () => void }) {
       )}
     </li>
   );
-}
+});

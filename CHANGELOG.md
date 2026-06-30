@@ -2,6 +2,28 @@
 
 Notable changes per version. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-06-30
+
+Performance, scalability, and security pass for installing many skills at once.
+
+### Security
+
+- **Hardened the install command against shell injection.** On Windows the installer must spawn through `cmd.exe` (`shell: true` is required for `npx.cmd`, CVE-2024-27980), so the parser now rejects any skill line whose tokens fall outside a strict allowlist (`owner/repo@skill`, flags, agent names, and git refs) before they reach the shell. A source containing shell metacharacters (for example from a malicious skills.sh result added via the Search tab) no longer runs.
+- **External links open only for `http(s)` URLs.** The window-open handler validates the scheme before calling `shell.openExternal`, so `file:` and custom-protocol URLs are ignored.
+- **Content-Security-Policy on the renderer.** A CSP is set via `onHeadersReceived`: strict in production (`default-src 'self'`, `script-src 'self'`, `connect-src 'none'`), and relaxed in development only enough for the Vite dev server (inline preamble and the HMR websocket). Neither policy enables `unsafe-eval`, which clears the Electron insecure-CSP warning.
+
+### Added
+
+- **Configurable install concurrency.** Installs run a worker pool sized by `resolveConcurrency`: an explicit `SKILLS_INSTALL_CONCURRENCY` env override, otherwise scaled to the parallelism available to the process (`os.availableParallelism()`, which respects CPU affinity and cgroup limits), capped at 8 and never more than the number of planned installs.
+
+### Changed
+
+- **Run cards are memoized** (`React.memo`) so a log update re-renders only the affected card instead of the whole list, and each card uses `content-visibility: auto` so off-screen cards skip render and layout. Keeps the execution panel responsive with hundreds of installs.
+- **Install logs are coalesced** in the main process (`logBuffer`): stdout and stderr chunks are buffered and flushed on a 50ms interval (and on process exit) instead of one IPC message per chunk, cutting IPC traffic and renderer re-renders for chatty installs.
+- **Per-run logs are capped** at 2000 lines (oldest dropped), bounding memory and keeping the immutable append linear instead of quadratic.
+- **Install pre-flight is async and deduplicated.** The "already installed" check uses `fs/promises` and runs in parallel across unique skill names, so it no longer blocks the main thread on synchronous `existsSync` for large lists.
+- **The run shortcut hint adapts to the platform**: it shows `Ctrl` on Windows and `⌘` elsewhere, instead of always showing the macOS symbol.
+
 ## [1.0.0] - 2026-06-30
 
 First stable release. Consolidates the tooling, accessibility, test-suite, and renderer-architecture work.

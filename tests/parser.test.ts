@@ -3,6 +3,43 @@ import { parseLine, detectAlreadyInstalled } from "../src/main/parser";
 
 const baseOpts = { agents: ["claude-code"], global: true, force: false };
 
+describe("parseLine token safety", () => {
+  it("rejects lines whose tokens contain shell metacharacters", () => {
+    for (const evil of [
+      "evil&calc.exe",
+      "a/b@c|whoami",
+      "a/b@c;rm",
+      "a/b@c>out",
+      "a/b@c<in",
+      "a/b@c^x",
+      "$(reboot)",
+      "`reboot`",
+      'a/b@"c"',
+      "a/b@c$IFS",
+    ]) {
+      expect(parseLine(evil, baseOpts)).toBeNull();
+    }
+  });
+
+  it("rejects shell metacharacters hidden inside a quoted whole-command", () => {
+    expect(parseLine('"good/repo@skill && calc.exe"', baseOpts)).toBeNull();
+  });
+
+  it("still accepts ordinary sources, flags, and git-ref values", () => {
+    expect(parseLine("owner/repo@frontend-design", baseOpts)?.source).toBe(
+      "owner/repo@frontend-design",
+    );
+    const withFlags = parseLine(
+      "owner/repo@skill --branch feature/x --ref v1.2.3",
+      baseOpts,
+    );
+    expect(withFlags?.source).toBe("owner/repo@skill");
+    expect(withFlags?.args).toEqual(
+      expect.arrayContaining(["--branch", "feature/x", "--ref", "v1.2.3"]),
+    );
+  });
+});
+
 describe("parseLine", () => {
   it("returns null for empty lines", () => {
     expect(parseLine("", baseOpts)).toBeNull();

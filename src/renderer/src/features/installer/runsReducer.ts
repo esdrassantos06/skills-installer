@@ -12,6 +12,8 @@ export type Run = {
   expanded: boolean;
 };
 
+export const MAX_LOG_LINES = 2000;
+
 export type RunsAction =
   | { type: "plan"; commands: { display: string; source: string }[] }
   | { type: "start"; index: number; cmd: string }
@@ -48,14 +50,14 @@ export function runsReducer(state: Run[], action: RunsAction): Run[] {
       );
 
     case "log":
-      return state.map((r) =>
-        r.index === action.index
-          ? {
-              ...r,
-              log: [...r.log, { stream: action.stream, text: action.text }],
-            }
-          : r,
-      );
+      return state.map((r) => {
+        if (r.index !== action.index) return r;
+        const log = [...r.log, { stream: action.stream, text: action.text }];
+        if (log.length > MAX_LOG_LINES) {
+          log.splice(0, log.length - MAX_LOG_LINES);
+        }
+        return { ...r, log };
+      });
 
     case "done":
       return state.map((r) =>

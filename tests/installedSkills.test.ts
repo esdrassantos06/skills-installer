@@ -55,6 +55,29 @@ describe("getInstalledSkillNames", () => {
     expect(probed).toContain(matchPath);
   });
 
+  it("supports async path existence checks", async () => {
+    const installed = new Set([join(HOME, ".agents/skills/foo")]);
+    const pathExists = async (p: string) => installed.has(p);
+    const result = await getInstalledSkillNames(["bar", "foo"], {
+      homedir,
+      pathExists,
+    });
+    expect([...result]).toEqual(["foo"]);
+  });
+
+  it("probes each unique candidate once, even when repeated", async () => {
+    let calls = 0;
+    const pathExists = () => {
+      calls++;
+      return false;
+    };
+    await getInstalledSkillNames(["foo", "foo", "foo"], {
+      homedir,
+      pathExists,
+    });
+    expect(calls).toBe(9);
+  });
+
   it("short-circuits once a candidate is found in any path", async () => {
     let calls = 0;
     const matchPath = join(HOME, ".claude/skills/foo");

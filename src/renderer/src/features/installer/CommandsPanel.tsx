@@ -1,6 +1,7 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
 import { Panel } from "../../components/Panel";
 import { appendUniqueLines } from "../../lib/lines";
+import { modKey } from "../../lib/platform";
 import { PRESETS } from "./presets";
 
 export function CommandsPanel({
@@ -92,7 +93,7 @@ anthropics/skills@frontend-design
           )}
         </button>
         <kbd className="rounded border border-border bg-panel px-1.5 py-0.5 text-[10px] text-muted">
-          ⌘↵
+          {modKey}↵
         </kbd>
         <label className="ml-auto flex cursor-pointer items-center gap-1.5 text-[11px] text-muted">
           <input

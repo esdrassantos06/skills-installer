@@ -3,6 +3,7 @@ import {
   runsReducer,
   activeRunIndex,
   summarizeRuns,
+  MAX_LOG_LINES,
   type Run,
 } from "./runsReducer";
 
@@ -103,6 +104,22 @@ describe("runsReducer", () => {
       alreadyInstalled: true,
     });
     expect(runs[0]).toMatchObject({ status: "skipped", expanded: false });
+  });
+
+  it("caps a run's log at MAX_LOG_LINES, dropping the oldest lines", () => {
+    let runs = planned();
+    const extra = 5;
+    for (let i = 0; i < MAX_LOG_LINES + extra; i++) {
+      runs = runsReducer(runs, {
+        type: "log",
+        index: 0,
+        stream: "out",
+        text: `L${i}`,
+      });
+    }
+    expect(runs[0].log).toHaveLength(MAX_LOG_LINES);
+    expect(runs[0].log[0].text).toBe(`L${extra}`);
+    expect(runs[0].log.at(-1)?.text).toBe(`L${MAX_LOG_LINES + extra - 1}`);
   });
 
   it("toggle flips the expanded flag for one run", () => {

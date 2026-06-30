@@ -19,6 +19,19 @@ const SOURCE_FLAGS_TAKING_VALUE = new Set([
   "--branch",
 ]);
 
+/**
+ * Allowlist for any token that becomes a spawn argument. On Windows the install
+ * runs through `cmd.exe` (shell: true is required for npx.cmd), so a token
+ * containing shell metacharacters could inject commands. Skill sources, flags,
+ * agent names, and git refs only need these characters; anything else is
+ * rejected rather than passed to the shell.
+ */
+const SAFE_TOKEN_REGEX = /^[A-Za-z0-9@._/:+=-]+$/;
+
+function isSafeToken(token: string): boolean {
+  return SAFE_TOKEN_REGEX.test(token);
+}
+
 export function parseLine(
   line: string,
   opts: ParseOptions,
@@ -38,6 +51,8 @@ export function parseLine(
   if (tokens.length === 1 && /\s/.test(tokens[0])) {
     return parseLine(tokens[0], opts);
   }
+
+  if (tokens.some((t) => !isSafeToken(t))) return null;
 
   const filtered: string[] = [];
   let skipNext = false;

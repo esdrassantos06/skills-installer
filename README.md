@@ -32,8 +32,8 @@ The `skills` CLI installs one source per invocation and prompts for confirmation
 
 - Accepts a list of `owner/repo@skill` lines, or full `npx skills add ...` commands. Both parse fine.
 - Injects `-y`, `-g`, and `-a <agent>` per line so nothing prompts.
-- Runs sequentially with a status card per skill: `pending` → `running` → `ok` / `skipped` / `failed`.
-- Detects "already installed" output and shows it as `skipped` rather than treating it as success.
+- Runs several installs in parallel, with a status card per skill: `pending` → `running` → `ok` / `skipped` / `failed`. Concurrency scales to the CPUs available to the process and can be pinned with the `SKILLS_INSTALL_CONCURRENCY` env var. The execution panel auto-follows whichever install is active.
+- Detects "already installed" output and shows it as `skipped` rather than treating it as success. The pre-flight check that drives this is async and deduplicated, so a large paste does not block the UI.
 - Kills any spawn that hangs for 90 seconds. A stuck CLI used to mean infinite "pending".
 - Browses the skills.sh catalog from a built-in **Search** tab with a Featured list cached in memory.
 
@@ -108,7 +108,7 @@ Sort options apply to both Featured and search results:
 
 - **Featured** (most installed, default)
 - **Fewest installs**
-- **A–Z** / **Z–A**
+- **A-Z** / **Z-A**
 
 ## Flags
 
@@ -152,7 +152,7 @@ Tokens you pass inline like `--skill name` or `--branch main` are preserved as-i
 └──────────────────────────────┘
 ```
 
-Pure logic (`parser.ts`, `skillsApi.ts`, `searchReducer.ts`, `cache.ts`) lives in `src/main/` and is tested without electron mocks.
+Pure logic in `src/main/` (`parser.ts`, `skillsApi.ts`, `searchReducer.ts`, `cache.ts`, `installedSkills.ts`, `concurrency.ts`, `logBuffer.ts`) and the renderer's hooks and reducers are tested without Electron, across separate node and jsdom Vitest projects.
 
 ## Tests
 
@@ -162,22 +162,38 @@ npm run test:watch # vitest watch
 npm run test:ui    # vitest browser UI
 ```
 
-The suite covers:
+The suite runs as two Vitest projects, `node` and `renderer` (jsdom):
 
-- **Parser** (21 tests). Every flag combination, comments, quoted bundles, multiple agents.
-- **Search reducer** (17 tests). State machine, sort modes, edge cases.
-- **Skills.sh API client** (10 tests). Mocked fetch, HTTP errors, malformed payloads.
-- **Cache** (10 tests). TTL expiry, LRU eviction, key normalization, recency refresh.
+**Main process**
+
+- **Parser**. Every flag combination, comments, quoted bundles, multiple agents.
+- **Search reducer**. State machine, sort modes, edge cases.
+- **Skills.sh API client**. Mocked fetch, HTTP errors, malformed payloads.
+- **Cache**. TTL expiry, LRU eviction, key normalization, recency refresh.
+- **Install pre-flight, concurrency resolver, and log buffer**. Async/deduped existence checks, env-vs-CPU concurrency, and timer-based log coalescing.
+
+**Renderer**
+
+- **Install run state machine and selectors**. Plan/start/log/done transitions, log cap, active-install selection, summary counts.
+- **Hooks**. Auto-follow, debounced search, featured-skills loading and retry.
+- **Utilities**. Line parsing/merging, install-count formatting.
+- **Components and accessibility**. Run card behavior, `aria-expanded`, and an XSS-escaping regression test for untrusted skill data.
 
 ## Layout
 
 ```
-src/main/         parser.ts, skillsApi.ts, searchReducer.ts, cache.ts, index.ts
+src/main/         parser, skillsApi, searchReducer, cache, installedSkills,
+                  concurrency, logBuffer, cleanCliOutput, index
 src/preload/      contextBridge surface (window.api)
-src/renderer/     React app: App, AgentSelect, SearchPage, Logo, agents
-tests/            parser, searchReducer, skillsApi, cache
+src/renderer/     App, AgentSelect, Logo, agents, plus:
+                    components/   shared UI (Panel, Tabs)
+                    features/     installer/, search/, shell/ (components + hooks)
+                    lib/          lines, format, storageKeys
+                    test/         jsdom setup + window.api mock
+tests/            node-side: parser, searchReducer, skillsApi, cache,
+                  installedSkills, concurrency, logBuffer
 assets/           logo.svg, logo-wordmark.svg, favicon.svg, generated icons
-scripts/          generate-icons.mjs
+scripts/          generate-icons.mjs, ensure-electron-binary.mjs
 .github/          workflows + issue/PR templates + dependabot
 ```
 
@@ -187,10 +203,11 @@ scripts/          generate-icons.mjs
 | ------------ | --------------------------------------------------------------- |
 | Bundling     | electron-vite 5, Vite 7                                         |
 | Shell        | Electron 42                                                     |
-| UI           | React 18, Tailwind v4 (via `@tailwindcss/vite`)                 |
+| UI           | React 19, Tailwind v4 (via `@tailwindcss/vite`)                 |
 | Types        | TypeScript 5.7 (strict)                                         |
 | Font         | JetBrains Mono Variable, self-hosted via `@fontsource-variable` |
-| Tests        | Vitest 4                                                        |
+| Tests        | Vitest 4 (node + jsdom projects), Testing Library               |
+| Lint/format  | ESLint 10 (flat config) + Prettier (Prettier run via ESLint)    |
 | Packaging    | electron-builder 26 (dmg, nsis, AppImage)                       |
 | Raster icons | sharp (run `npm run icons` after editing the SVG)               |
 
@@ -202,7 +219,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) first. In short: write a failing test be
 
 If you find a vulnerability, please don't open a public issue. See [SECURITY.md](SECURITY.md) for private reporting.
 
-Threat model summary: spawned commands use `shell: false`, so no shell expansion. Electron runs with `contextIsolation: true` and `nodeIntegration: false`. The only outbound call from the main process is a hardcoded GET to `skills.sh`. Skills themselves run with full agent permissions once installed, so vet sources before adding them.
+Threat model summary: Electron runs with `contextIsolation: true` and `nodeIntegration: false`, and the renderer shows all skill data as escaped text (no `dangerouslySetInnerHTML`). The only outbound call from the main process is a GET to `skills.sh`. Installs spawn without a shell on macOS and Linux; on Windows they spawn with `shell: true` because Node refuses to launch `npx.cmd` otherwise (CVE-2024-27980), so the parser rejects any skill line whose tokens fall outside a strict allowlist before they reach the shell. External links open only for `http(s)` URLs, and the renderer runs under a Content-Security-Policy (strict in production, relaxed only for the Vite dev server). Skills still run with full agent permissions once installed, so vet the sources you add.
 
 ## License
 
