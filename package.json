@@ -58,7 +58,7 @@
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.4",
-    "@vitest/ui": "^4.1.6",
+    "@vitest/ui": "^4.1.11",
     "electron": "^42.1.0",
     "electron-builder": "^26.8.1",
     "electron-vite": "^5.0.0",
@@ -70,11 +70,11 @@
     "globals": "^17.7.0",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.4",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.3.0",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.62.1",
     "vite": "^7.1.13",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.11"
   }
 }
