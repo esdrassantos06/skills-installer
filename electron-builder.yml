@@ -7,6 +7,12 @@ files:
   - out/**/*
   - package.json
 
+# The bundled skills CLI (and its deps) must stay real files: Node's ESM
+# loader cannot import from inside an asar archive, and the installer runs
+# the CLI with Electron's own Node (ELECTRON_RUN_AS_NODE).
+asarUnpack:
+  - node_modules/**
+
 # macOS: unsigned distribution.
 # identity: null disables code signing entirely. Users will need to remove the
 # quarantine attribute after installing (see README "Install on macOS").

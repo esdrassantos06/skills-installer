@@ -2,6 +2,20 @@
 
 Notable changes per version. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Skill installs no longer require Node.js or npm on the user's machine.** The app now ships the `skills` CLI (1.7.2) and runs it with the Node runtime embedded in Electron (`ELECTRON_RUN_AS_NODE`) instead of spawning `npx`. Downloading a release and hitting install no longer fails with `spawn npx ENOENT` when Node is missing or installed via nvm/Homebrew and invisible to an app launched from Finder. The CLI clones repositories with `git`, which must be on `PATH`.
+
+### Security
+
+- Installs spawn the bundled CLI directly on every platform, so the Windows-only `shell: true` (required to launch `npx.cmd`, CVE-2024-27980) is gone and no token can reach `cmd.exe`. The parser allowlist stays as defense in depth.
+
+### Changed
+
+- Install cards now display `skills add ...` instead of `npx skills add ...`, matching what actually runs. Users can still paste `npx skills add ...` lines.
+
 ## [1.1.1] - 2026-06-30
 
 ### Added

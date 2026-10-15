@@ -20,11 +20,10 @@ const SOURCE_FLAGS_TAKING_VALUE = new Set([
 ]);
 
 /**
- * Allowlist for any token that becomes a spawn argument. On Windows the install
- * runs through `cmd.exe` (shell: true is required for npx.cmd), so a token
- * containing shell metacharacters could inject commands. Skill sources, flags,
- * agent names, and git refs only need these characters; anything else is
- * rejected rather than passed to the shell.
+ * Allowlist for any token that becomes a CLI argument. Installs spawn the
+ * bundled skills CLI directly (no shell), but tokens outside this set have no
+ * legitimate use, so they are rejected as defense in depth. Skill sources,
+ * flags, agent names, and git refs only need these characters.
  */
 const SAFE_TOKEN_REGEX = /^[A-Za-z0-9@._/:+=-]+$/;
 
@@ -59,7 +58,6 @@ export function parseLine(
   const userAgents: string[] = [];
   let userGlobal: boolean | null = null;
   let userForce: boolean | null = null;
-  let userYes = false;
   let source = "";
 
   for (let i = 0; i < tokens.length; i++) {
@@ -87,8 +85,7 @@ export function parseLine(
       continue;
     }
     if (t === "-y" || t === "--yes") {
-      userYes = true;
-      continue;
+      continue; // normalized to a single trailing -y below
     }
     if (SOURCE_FLAGS_TAKING_VALUE.has(t)) {
       filtered.push(t);
@@ -102,8 +99,7 @@ export function parseLine(
 
   if (!source) return null;
 
-  const finalArgs = ["-y", "skills", "add", ...filtered];
-  if (!userYes) finalArgs.push("-y");
+  const finalArgs = ["add", ...filtered, "-y"];
 
   const effectiveGlobal = userGlobal ?? opts.global;
   if (effectiveGlobal) finalArgs.push("-g");
@@ -117,7 +113,7 @@ export function parseLine(
   const skillNames = extractSkillNames(source, tokens);
   return {
     args: finalArgs,
-    display: "npx " + finalArgs.join(" "),
+    display: "skills " + finalArgs.join(" "),
     source,
     skillNames,
   };

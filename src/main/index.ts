@@ -6,6 +6,7 @@ import { parseLine, detectAlreadyInstalled } from "./parser";
 import { searchSkills, SkillsApiError, type Skill } from "./skillsApi";
 import { Cache } from "./cache";
 import { cleanCliOutput } from "./cleanCliOutput";
+import { resolveSkillsCliPath } from "./skillsCli";
 import { getInstalledSkillNames, shouldSkip } from "./installedSkills";
 import { resolveConcurrency } from "./concurrency";
 import { createLogBuffer } from "./logBuffer";
@@ -85,7 +86,7 @@ app.whenReady().then(() => {
         if (!evt.sender.isDestroyed()) evt.sender.send(channel, payload);
       };
 
-      const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+      const skillsCli = resolveSkillsCliPath(app.getAppPath());
 
       const parsed = lines
         .map((raw) => parseLine(raw, opts))
@@ -126,7 +127,7 @@ app.whenReady().then(() => {
 
           const result = await runSingle({
             index: i,
-            npx,
+            cliPath: skillsCli,
             args: p.args,
             send,
           });
@@ -198,7 +199,7 @@ type RunResult = { code: number; alreadyInstalled: boolean };
 
 function runSingle(p: {
   index: number;
-  npx: string;
+  cliPath: string;
   args: string[];
   send: (channel: string, payload: unknown) => void;
 }): Promise<RunResult> {
@@ -220,16 +221,17 @@ function runSingle(p: {
       errBuf.stop();
     };
 
-    const child = spawn(p.npx, p.args, {
+    // Run the bundled skills CLI on Electron's own Node (ELECTRON_RUN_AS_NODE),
+    // so no system Node/npm is required and no shell is involved.
+    const child = spawn(process.execPath, [p.cliPath, ...p.args], {
       env: {
         ...process.env,
+        ELECTRON_RUN_AS_NODE: "1",
         CI: "1",
         FORCE_COLOR: "0",
         NO_COLOR: "1",
-        npm_config_yes: "true",
       },
       stdio: ["ignore", "pipe", "pipe"],
-      shell: process.platform === "win32",
     });
 
     const heartbeat = setInterval(() => {

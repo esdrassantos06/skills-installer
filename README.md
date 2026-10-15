@@ -39,6 +39,8 @@ The `skills` CLI installs one source per invocation and prompts for confirmation
 
 ## Install
 
+No Node.js or npm needed on your machine: the app ships the `skills` CLI and runs it with the Node runtime embedded in Electron. It does need `git`, which the CLI uses to fetch skill repositories.
+
 ### Pre-built releases
 
 Grab the artifact for your OS from [GitHub Releases](https://github.com/esdrassantos06/skills-installer/releases).
@@ -137,7 +139,8 @@ Tokens you pass inline like `--skill name` or `--branch main` are preserved as-i
 ┌──────────────────────────────┐
 │  Main (Node + Electron)      │
 │  parseLine() per entry       │
-│  spawn(npx, args)            │
+│  spawn(process.execPath,     │
+│    skills CLI, no npx)       │
 │  15s heartbeat, 90s kill     │
 │  In-memory LRU search cache  │
 │  fetch skills.sh API         │
@@ -152,7 +155,7 @@ Tokens you pass inline like `--skill name` or `--branch main` are preserved as-i
 └──────────────────────────────┘
 ```
 
-Pure logic in `src/main/` (`parser.ts`, `skillsApi.ts`, `searchReducer.ts`, `cache.ts`, `installedSkills.ts`, `concurrency.ts`, `logBuffer.ts`) and the renderer's hooks and reducers are tested without Electron, across separate node and jsdom Vitest projects.
+Pure logic in `src/main/` (`parser.ts`, `skillsApi.ts`, `searchReducer.ts`, `cache.ts`, `installedSkills.ts`, `concurrency.ts`, `logBuffer.ts`, `skillsCli.ts`) and the renderer's hooks and reducers are tested without Electron, across separate node and jsdom Vitest projects.
 
 ## Tests
 
@@ -170,7 +173,7 @@ The suite runs as two Vitest projects, `node` and `renderer` (jsdom):
 - **Search reducer**. State machine, sort modes, edge cases.
 - **Skills.sh API client**. Mocked fetch, HTTP errors, malformed payloads.
 - **Cache**. TTL expiry, LRU eviction, key normalization, recency refresh.
-- **Install pre-flight, concurrency resolver, and log buffer**. Async/deduped existence checks, env-vs-CPU concurrency, and timer-based log coalescing.
+- **Install pre-flight, concurrency resolver, log buffer, and CLI path resolution**. Async/deduped existence checks, env-vs-CPU concurrency, timer-based log coalescing, and dev-vs-packaged CLI paths.
 
 **Renderer**
 
@@ -183,7 +186,7 @@ The suite runs as two Vitest projects, `node` and `renderer` (jsdom):
 
 ```
 src/main/         parser, skillsApi, searchReducer, cache, installedSkills,
-                  concurrency, logBuffer, cleanCliOutput, index
+                  concurrency, logBuffer, cleanCliOutput, skillsCli, index
 src/preload/      contextBridge surface (window.api)
 src/renderer/     App, AgentSelect, Logo, agents, plus:
                     components/   shared UI (Panel, Tabs)
@@ -191,7 +194,7 @@ src/renderer/     App, AgentSelect, Logo, agents, plus:
                     lib/          lines, format, storageKeys
                     test/         jsdom setup + window.api mock
 tests/            node-side: parser, searchReducer, skillsApi, cache,
-                  installedSkills, concurrency, logBuffer
+                  installedSkills, concurrency, logBuffer, skillsCli
 assets/           logo.svg, logo-wordmark.svg, favicon.svg, generated icons
 scripts/          generate-icons.mjs, ensure-electron-binary.mjs
 .github/          workflows + issue/PR templates + dependabot
@@ -219,7 +222,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) first. In short: write a failing test be
 
 If you find a vulnerability, please don't open a public issue. See [SECURITY.md](SECURITY.md) for private reporting.
 
-Threat model summary: Electron runs with `contextIsolation: true` and `nodeIntegration: false`, and the renderer shows all skill data as escaped text (no `dangerouslySetInnerHTML`). The only outbound call from the main process is a GET to `skills.sh`. Installs spawn without a shell on macOS and Linux; on Windows they spawn with `shell: true` because Node refuses to launch `npx.cmd` otherwise (CVE-2024-27980), so the parser rejects any skill line whose tokens fall outside a strict allowlist before they reach the shell. External links open only for `http(s)` URLs, and the renderer runs under a Content-Security-Policy (strict in production, relaxed only for the Vite dev server). Skills still run with full agent permissions once installed, so vet the sources you add.
+Threat model summary: Electron runs with `contextIsolation: true` and `nodeIntegration: false`, and the renderer shows all skill data as escaped text (no `dangerouslySetInnerHTML`). The only outbound calls are a GET to `skills.sh` (search) and the bundled CLI's fetches to GitHub when installing. Installs spawn the bundled CLI directly, without a shell, on every platform, so no shell metacharacters are interpreted; the parser still rejects any skill line whose tokens fall outside a strict allowlist as defense in depth. External links open only for `http(s)` URLs, and the renderer runs under a Content-Security-Policy (strict in production, relaxed only for the Vite dev server). Skills still run with full agent permissions once installed, so vet the sources you add.
 
 ## License
 
