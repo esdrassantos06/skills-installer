@@ -43,10 +43,10 @@
     "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
-    "@fontsource-variable/jetbrains-mono": "^5.2.8",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "skills": "1.7.2"
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "skills": "1.7.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -55,8 +55,8 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.10.0",
-    "@types/react": "^19.2.15",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.0.4",
     "@vitest/ui": "^4.1.11",
     "electron": "^42.1.0",
