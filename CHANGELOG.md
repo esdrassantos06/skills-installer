@@ -4,6 +4,10 @@ Notable changes per version. Format based on [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
+### Added
+
+- **Skill detail page.** Clicking a skill in Search opens `#/skills/<id>` with installs (total and weekly), topics, summary, security audits, related skills, the install command, and the rendered SKILL.md. GitHub skills also show stars, forks, open issues, watchers, license, language, and last push. Skills published on their own domain (for example `open.feishu.cn`) load their SKILL.md from the site's well-known skills index.
+
 ### Fixed
 
 - **Skill installs no longer require Node.js or npm on the user's machine.** The app now ships the `skills` CLI (1.7.2) and runs it with the Node runtime embedded in Electron (`ELECTRON_RUN_AS_NODE`) instead of spawning `npx`. Downloading a release and hitting install no longer fails with `spawn npx ENOENT` when Node is missing or installed via nvm/Homebrew and invisible to an app launched from Finder. The CLI clones repositories with `git`, which must be on `PATH`.
