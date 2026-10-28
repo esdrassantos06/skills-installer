@@ -8,7 +8,7 @@ export function contentSecurityPolicy(isDev: boolean): string {
     "default-src 'self'",
     isDev ? "script-src 'self' 'unsafe-inline'" : "script-src 'self'",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data:",
+    "img-src 'self' data: https:",
     "font-src 'self' data:",
     isDev ? "connect-src 'self' ws:" : "connect-src 'none'",
     "object-src 'none'",

@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
+import type { SkillDetail } from "../main/skillDetail";
 
 export type LogEvent = { index: number; stream: "out" | "err"; text: string };
 export type StartEvent = { index: number; cmd: string };
@@ -42,6 +43,11 @@ const api = {
 
   clearSearchCache: (): Promise<{ ok: boolean }> =>
     ipcRenderer.invoke("search-cache-clear"),
+
+  skillDetail: (
+    id: string,
+  ): Promise<{ detail: SkillDetail | null; error: string | null }> =>
+    ipcRenderer.invoke("skill-detail", id),
 
   onPlan: (cb: (e: PlanEvent) => void) => listen("install:plan", cb),
   onStart: (cb: (e: StartEvent) => void) => listen("install:start", cb),
