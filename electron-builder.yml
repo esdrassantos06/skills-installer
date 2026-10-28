@@ -13,17 +13,20 @@ files:
 asarUnpack:
   - node_modules/**
 
+# Release assets are uploaded by the workflow, not by electron-builder. Without
+# this it self-publishes whenever GH_TOKEN is set, duplicating every asset and
+# adding auto-update metadata (latest*.yml, blockmaps) the app never reads.
+publish: null
+
+electronLanguages: [en, en-US]
+
 # macOS: unsigned distribution.
 # identity: null disables code signing entirely. Users will need to remove the
 # quarantine attribute after installing (see README "Install on macOS").
-# Shipping ZIP alongside DMG because ZIP is the lower-friction unsigned format
-# (no DMG mount, no Gatekeeper translocation).
 mac:
   target:
-    - target: zip
-      arch: [arm64, x64]
     - target: dmg
-      arch: [arm64, x64]
+      arch: [arm64]
   category: public.app-category.developer-tools
   icon: assets/icons/icon.png
   identity: null
@@ -53,3 +56,6 @@ nsis:
 
 portable:
   artifactName: ${productName}-Portable-${version}.${ext}
+
+dmg:
+  writeUpdateInfo: false

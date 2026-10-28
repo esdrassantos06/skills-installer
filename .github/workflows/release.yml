@@ -17,9 +17,7 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            artifacts: |
-              dist/*.dmg
-              dist/*.zip
+            artifacts: dist/*.dmg
             command: npm run dist:mac
           - os: windows-latest
             artifacts: dist/*.exe
@@ -48,7 +46,6 @@ jobs:
       - name: Build distributable
         run: ${{ matrix.command }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           WIN_CSC_LINK: ""
           CSC_LINK: ""
@@ -84,7 +81,7 @@ jobs:
 
             **macOS** (unsigned, no Apple Developer cert):
 
-            Download the `.zip` (recommended) or `.dmg` for your arch. After moving the app to /Applications, run once:
+            Apple Silicon (M1 or newer) only. Download the `.dmg`. After moving the app to /Applications, run once:
 
             `
             xattr -dr com.apple.quarantine "/Applications/Skills Installer.app"
