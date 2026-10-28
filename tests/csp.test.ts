@@ -14,6 +14,12 @@ describe("contentSecurityPolicy", () => {
     expect(csp).toContain("connect-src 'none'");
   });
 
+  it("allows remote images over https only, for SKILL.md previews", () => {
+    const csp = contentSecurityPolicy(false);
+    expect(csp).toContain("img-src 'self' data: https:;");
+    expect(csp).not.toMatch(/img-src[^;]*http:/);
+  });
+
   it("development allows the Vite HMR websocket and inline preamble", () => {
     const csp = contentSecurityPolicy(true);
     expect(csp).toContain("ws:");

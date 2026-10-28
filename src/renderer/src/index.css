@@ -93,3 +93,115 @@ body {
 .pulse-dot {
   animation: pulse-dot 1.2s ease-in-out infinite;
 }
+
+.skill-md {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--color-text) 82%, transparent);
+  overflow-wrap: anywhere;
+}
+.skill-md > :first-child {
+  margin-top: 0;
+}
+.skill-md :where(h3, h4, h5, h6) {
+  color: var(--color-text);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  margin: 1.8em 0 0.6em;
+}
+.skill-md h3 {
+  font-size: 16px;
+}
+.skill-md h4 {
+  font-size: 14px;
+}
+.skill-md :where(h5, h6) {
+  font-size: 12.5px;
+}
+.skill-md :where(p, ul, ol, pre, table, blockquote) {
+  margin: 0 0 0.9em;
+  max-width: 76ch;
+}
+.skill-md :where(ul, ol) {
+  padding-left: 1.4em;
+}
+.skill-md ul {
+  list-style: disc;
+}
+.skill-md ol {
+  list-style: decimal;
+}
+.skill-md li {
+  margin: 0.25em 0;
+}
+.skill-md li::marker {
+  color: var(--color-subtle);
+}
+.skill-md a {
+  color: var(--color-accent);
+  text-underline-offset: 3px;
+}
+.skill-md a:hover {
+  text-decoration: underline;
+}
+.skill-md strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+.skill-md :not(pre) > code {
+  background: var(--color-panel-2);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.92em;
+  color: var(--color-text);
+}
+.skill-md pre {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  font-size: 11.5px;
+  line-height: 1.6;
+  max-width: none;
+}
+.skill-md blockquote {
+  border-left: 1px solid var(--color-border-strong);
+  padding-left: 1em;
+  color: var(--color-muted);
+}
+.skill-md hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: 1.6em 0;
+}
+.skill-md table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  max-width: none;
+}
+.skill-md :where(th, td) {
+  border: 1px solid var(--color-border);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+.skill-md th {
+  background: var(--color-panel-2);
+  color: var(--color-text);
+  font-weight: 600;
+}
+.skill-md img {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.skill-md input[type="checkbox"] {
+  margin-right: 0.5em;
+  accent-color: var(--color-accent);
+}

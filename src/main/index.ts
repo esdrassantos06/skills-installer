@@ -4,6 +4,7 @@ import { availableParallelism } from "node:os";
 import { join } from "node:path";
 import { parseLine, detectAlreadyInstalled } from "./parser";
 import { searchSkills, SkillsApiError, type Skill } from "./skillsApi";
+import { getSkillDetail, type SkillDetail } from "./skillDetail";
 import { Cache } from "./cache";
 import { cleanCliOutput } from "./cleanCliOutput";
 import { resolveSkillsCliPath } from "./skillsCli";
@@ -26,6 +27,13 @@ const SEARCH_CACHE_MAX = 100;
 const searchCache = new Cache<Skill[]>({
   ttlMs: SEARCH_CACHE_TTL_MS,
   maxEntries: SEARCH_CACHE_MAX,
+});
+
+const DETAIL_CACHE_TTL_MS = 10 * 60 * 1000;
+const DETAIL_CACHE_MAX = 50;
+const detailCache = new Cache<SkillDetail>({
+  ttlMs: DETAIL_CACHE_TTL_MS,
+  maxEntries: DETAIL_CACHE_MAX,
 });
 
 function isWebUrl(url: string): boolean {
@@ -179,8 +187,31 @@ app.whenReady().then(() => {
     },
   );
 
+  ipcMain.handle(
+    "skill-detail",
+    async (
+      _evt,
+      id: string,
+    ): Promise<{ detail: SkillDetail | null; error: string | null }> => {
+      const cached = detailCache.get(id);
+      if (cached) return { detail: cached, error: null };
+      try {
+        const detail = await getSkillDetail(id);
+        detailCache.set(id, detail);
+        return { detail, error: null };
+      } catch (err) {
+        const message =
+          err instanceof SkillsApiError
+            ? err.message
+            : `Unknown error: ${(err as Error).message}`;
+        return { detail: null, error: message };
+      }
+    },
+  );
+
   ipcMain.handle("search-cache-clear", () => {
     searchCache.clear();
+    detailCache.clear();
     return { ok: true };
   });
 
