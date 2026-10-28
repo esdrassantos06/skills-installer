@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { sortSkills, type Skill } from "../../../../main/searchReducer";
 import { FEATURED_SEED_QUERIES, FEATURED_LIMIT } from "./constants";
 import { useSkillSearch } from "./useSkillSearch";
@@ -8,7 +8,7 @@ import { HomeView } from "./HomeView";
 import { ResultsView } from "./ResultsView";
 import { EmptyResults, ErrorView } from "./SearchStates";
 
-export function SearchPage({
+export const SearchPage = memo(function SearchPage({
   onAddToInstaller,
 }: {
   onAddToInstaller: (skill: Skill) => void;
@@ -68,4 +68,4 @@ export function SearchPage({
       )}
     </div>
   );
-}
+});

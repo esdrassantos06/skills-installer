@@ -7,7 +7,7 @@ export const RunCard = memo(function RunCard({
   onToggle,
 }: {
   run: Run;
-  onToggle: () => void;
+  onToggle: (index: number) => void;
 }) {
   const statusColor =
     run.status === "ok"
@@ -36,7 +36,7 @@ export const RunCard = memo(function RunCard({
       className={`overflow-hidden rounded-lg border ${borderColor} bg-panel-2/40 transition [content-visibility:auto] [contain-intrinsic-size:auto_56px]`}
     >
       <button
-        onClick={onToggle}
+        onClick={() => onToggle(run.index)}
         aria-expanded={run.expanded}
         aria-label={`${label}, ${run.status}`}
         className="flex w-full items-center gap-3 px-3 py-2 text-left transition hover:bg-panel-2"

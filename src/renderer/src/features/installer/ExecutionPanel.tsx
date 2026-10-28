@@ -76,11 +76,7 @@ export function ExecutionPanel({
           ) : (
             <ul className="space-y-2">
               {runs.map((r) => (
-                <RunCard
-                  key={r.index}
-                  run={r}
-                  onToggle={() => onToggle(r.index)}
-                />
+                <RunCard key={r.index} run={r} onToggle={onToggle} />
               ))}
             </ul>
           )}

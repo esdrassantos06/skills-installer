@@ -37,11 +37,11 @@ describe("RunCard", () => {
     expect(screen.getByRole("button")).toHaveAttribute("aria-expanded", "true");
   });
 
-  it("calls onToggle when activated", () => {
+  it("calls onToggle with the run index when activated", () => {
     const onToggle = vi.fn();
-    renderInList(makeRun(), onToggle);
+    renderInList(makeRun({ index: 7 }), onToggle);
     fireEvent.click(screen.getByRole("button"));
-    expect(onToggle).toHaveBeenCalledOnce();
+    expect(onToggle).toHaveBeenCalledExactlyOnceWith(7);
   });
 
   it("shows the exit code for a failed run", () => {

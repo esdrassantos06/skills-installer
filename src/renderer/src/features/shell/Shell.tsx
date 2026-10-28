@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Skill } from "../../../../main/searchReducer";
 import { Tabs, type Tab } from "../../components/Tabs";
 import { Footer } from "../../components/Footer";
@@ -38,10 +38,10 @@ export function Shell({
     localStorage.setItem(VIEW_KEY, view);
   }, [view]);
 
-  function appendSkill(skill: Skill) {
+  const appendSkill = useCallback((skill: Skill) => {
     const line = `${skill.source}@${skill.skillId}`;
     setInput((cur) => appendUniqueLines(cur, [line]));
-  }
+  }, []);
 
   return (
     <div className="flex h-full flex-col">
