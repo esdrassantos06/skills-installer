@@ -31,11 +31,12 @@ Targets Claude Code by default, plus eight other agents (Cursor, Codex, OpenCode
 The `skills` CLI installs one source per invocation and prompts for confirmation. That doesn't scale when you're populating a fresh setup with 30+ skills across testing, design, security, and docs. This app fixes that:
 
 - Accepts a list of `owner/repo@skill` lines, or full `npx skills add ...` commands. Both parse fine.
-- Injects `-y`, `-g`, and `-a <agent>` per line so nothing prompts.
+- Injects `-y`, `-g`, and `-a <agent>` per line so nothing prompts. Pick a project folder with **Choose Folder** and the same list installs into that project instead of globally.
 - Runs several installs in parallel, with a status card per skill: `pending` → `running` → `ok` / `skipped` / `failed`. Concurrency scales to the CPUs available to the process and can be pinned with the `SKILLS_INSTALL_CONCURRENCY` env var. The execution panel auto-follows whichever install is active.
 - Detects "already installed" output and shows it as `skipped` rather than treating it as success. The pre-flight check that drives this is async and deduplicated, so a large paste does not block the UI.
 - Kills any spawn that hangs for 90 seconds. A stuck CLI used to mean infinite "pending".
 - Browses the skills.sh catalog from a built-in **Search** tab with a Featured list cached in memory.
+- Lists and deletes installed skills from a **Manage** tab, globally or per project, one at a time or in batch.
 
 ## Install
 
@@ -100,11 +101,13 @@ antfu/skills@vitest
 
 Press `⌘↵` (or `Ctrl+↵` on Windows) to run them all. The shortcut works regardless of which control has focus inside the tab. Lines starting with `#` are ignored. Preset buttons (Design, React/Next/RN, Backend/TS, Testing, Writing, Docs, Security, A11y/Review) append curated bundles without duplicating.
 
+Installs are global by default. **Choose Folder** next to the Install button picks a project folder instead: the CLI then runs inside that folder without `-g`, so skills land in the project (`.claude/skills`, `.agents/skills`, ...). The titlebar shows the target (`--global` or `cwd=<folder>`), the choice is remembered, and the ✕ on the folder chip goes back to global. If the folder no longer exists, the run stops with an error instead of falling back to a global install.
+
 ### Search tab
 
 Featured list loads the top results across 8 broad categories (react, design, testing, security, docs, typescript, nextjs, best-practices), deduplicates by id, and sorts by install count. Click `+ add` on any row to push that source into the Installer tab.
 
-The search input debounces for 300ms and requires at least 2 characters. Results live in an in-memory LRU cache (TTL 5 minutes, 100 entries) so flipping back to the Installer tab and returning doesn't refetch.
+Press `⌘J` (or `Ctrl+J` on Windows) to jump to the search field. The input debounces for 300ms and requires at least 2 characters. Results live in an in-memory LRU cache (TTL 5 minutes, 100 entries) so flipping back to the Installer tab and returning doesn't refetch.
 
 Sort options apply to both Featured and search results:
 
@@ -112,16 +115,27 @@ Sort options apply to both Featured and search results:
 - **Fewest installs**
 - **A-Z** / **Z-A**
 
+### Manage tab
+
+Lists installed skills and deletes them. It has two scopes:
+
+- **Global** shows one section per agent. Agents that read the shared `~/.agents/skills` folder (Codex, Cursor, Gemini CLI, GitHub Copilot, Antigravity, and others) are grouped into a single **Shared** section, because they share one copy of each skill: deleting there removes it from all of them. Agents with their own folder, like Claude Code, keep their own section, where deleting removes only that agent's copy or link.
+- **Project** shows one section per project folder, named after the folder, with each skill tagged by agent (`Claude Code`, `Shared`). The list holds the folders you chose in the Installer plus any you add with **Add Folder**; the app never scans your disk for projects. The ✕ on a project only takes it off the list, its files stay.
+
+Deleting asks for a second click to confirm and updates the list right away, putting the skill back with an error if the removal fails. Tick checkboxes to delete in batch: **Select all** selects the rest of the sections you already picked from, and while the selection bar is open `A` selects all, `C` clears, and `D` deletes (press `D` again to confirm, `Esc` to cancel). `⌘J` / `Ctrl+J` focuses the filter.
+
+The `skills` CLI keeps a shared `.agents/skills` copy whenever another agent has a folder with the same name, even an independent copy. After a removal the app deletes that leftover copy itself, unless an agent folder still links to it, in which case the error names the link to delete first.
+
 ## Flags
 
 Every parsed line gets these appended unless the line specifies them inline:
 
-| Flag                  | Default                               | Override                                           |
-| --------------------- | ------------------------------------- | -------------------------------------------------- |
-| `-y`                  | always                                | n/a                                                |
-| `-g` (global install) | yes                                   | inline `--no-global`                               |
-| `--force`             | off                                   | toggle the "force reinstall" checkbox              |
-| `-a <agent>`          | each agent picked on the first screen | inline `-a cursor` replaces defaults for that line |
+| Flag                  | Default                                | Override                                           |
+| --------------------- | -------------------------------------- | -------------------------------------------------- |
+| `-y`                  | always                                 | n/a                                                |
+| `-g` (global install) | yes, unless a project folder is chosen | **Choose Folder**, or inline `--no-global`         |
+| `--force`             | off                                    | toggle the "force reinstall" checkbox              |
+| `-a <agent>`          | each agent picked on the first screen  | inline `-a cursor` replaces defaults for that line |
 
 Tokens you pass inline like `--skill name` or `--branch main` are preserved as-is.
 
@@ -130,11 +144,12 @@ Tokens you pass inline like `--skill name` or `--branch main` are preserved as-i
 ```
 ┌──────────────────────────────┐
 │  Renderer (React + Tailwind) │
-│  Installer + Search tabs     │
+│  Installer, Search, Manage   │
 │  Per-run status cards        │
 │  Featured list with cache    │
 └─────────┬────────────────────┘
-          │ ipcRenderer.invoke('install-all' | 'search-skills', ...)
+          │ ipcRenderer.invoke('install-all' | 'search-skills' |
+          │   'installed-list' | 'skills-remove' | 'choose-folder', ...)
           ▼
 ┌──────────────────────────────┐
 │  Main (Node + Electron)      │
@@ -142,6 +157,7 @@ Tokens you pass inline like `--skill name` or `--branch main` are preserved as-i
 │  spawn(process.execPath,     │
 │    skills CLI, no npx)       │
 │  15s heartbeat, 90s kill     │
+│  skills list / remove        │
 │  In-memory LRU search cache  │
 │  fetch skills.sh API         │
 └─────────┬────────────────────┘
@@ -152,10 +168,13 @@ Tokens you pass inline like `--skill name` or `--branch main` are preserved as-i
 │  window.api.installAll       │
 │  window.api.searchSkills     │
 │  window.api.clearSearchCache │
+│  window.api.listInstalled    │
+│  window.api.removeSkills     │
+│  window.api.chooseFolder     │
 └──────────────────────────────┘
 ```
 
-Pure logic in `src/main/` (`parser.ts`, `skillsApi.ts`, `searchReducer.ts`, `cache.ts`, `installedSkills.ts`, `concurrency.ts`, `logBuffer.ts`, `skillsCli.ts`) and the renderer's hooks and reducers are tested without Electron, across separate node and jsdom Vitest projects.
+Pure logic in `src/main/` (`parser.ts`, `skillsApi.ts`, `searchReducer.ts`, `cache.ts`, `installedSkills.ts`, `installedList.ts`, `projectDir.ts`, `sharedCopy.ts`, `concurrency.ts`, `logBuffer.ts`, `skillsCli.ts`) and the renderer's hooks and reducers are tested without Electron, across separate node and jsdom Vitest projects.
 
 ## Tests
 
@@ -174,6 +193,7 @@ The suite runs as two Vitest projects, `node` and `renderer` (jsdom):
 - **Skills.sh API client**. Mocked fetch, HTTP errors, malformed payloads.
 - **Cache**. TTL expiry, LRU eviction, key normalization, recency refresh.
 - **Install pre-flight, concurrency resolver, log buffer, and CLI path resolution**. Async/deduped existence checks, env-vs-CPU concurrency, timer-based log coalescing, and dev-vs-packaged CLI paths.
+- **Installed skills**. Parsing `skills list --json`, grouping agents into the Shared section (checked against the bundled CLI's agent table), removal planning and argument validation, project folder validation, and shared-copy cleanup on a real temp folder.
 
 **Renderer**
 
@@ -181,20 +201,24 @@ The suite runs as two Vitest projects, `node` and `renderer` (jsdom):
 - **Hooks**. Auto-follow, debounced search, featured-skills loading and retry.
 - **Utilities**. Line parsing/merging, install-count formatting.
 - **Components and accessibility**. Run card behavior, `aria-expanded`, and an XSS-escaping regression test for untrusted skill data.
+- **Manage page and install folder**. Sections per agent and per project, filter, optimistic and batch delete, selection and search shortcuts, and the Installer's global vs project target.
 
 ## Layout
 
 ```
 src/main/         parser, skillsApi, searchReducer, cache, installedSkills,
-                  concurrency, logBuffer, cleanCliOutput, skillsCli, index
+                  installedList, projectDir, sharedCopy, concurrency,
+                  logBuffer, cleanCliOutput, skillsCli, skillDetail, index
 src/preload/      contextBridge surface (window.api)
 src/renderer/     App, AgentSelect, Logo, agents, plus:
-                    components/   shared UI (Panel, Tabs)
-                    features/     installer/, search/, shell/ (components + hooks)
-                    lib/          lines, format, storageKeys
+                    components/   shared UI (Panel, Tabs, FolderPicker)
+                    features/     installer/, search/, manage/, skill/, shell/
+                    lib/          lines, format, storageKeys, projectFolder,
+                                  useFocusShortcut
                     test/         jsdom setup + window.api mock
 tests/            node-side: parser, searchReducer, skillsApi, cache,
-                  installedSkills, concurrency, logBuffer, skillsCli
+                  installedSkills, installedList, projectDir, sharedCopy,
+                  concurrency, logBuffer, skillsCli
 assets/           logo.svg, logo-wordmark.svg, favicon.svg, generated icons
 scripts/          generate-icons.mjs, ensure-electron-binary.mjs
 .github/          workflows + issue/PR templates + dependabot
