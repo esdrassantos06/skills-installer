@@ -28,6 +28,8 @@ export function createMockApi(): MockApi {
       .mockResolvedValue({ skills: [], error: null, cached: false }),
     clearSearchCache: vi.fn().mockResolvedValue({ ok: true }),
     skillDetail: vi.fn().mockResolvedValue({ detail: null, error: null }),
+    listInstalled: vi.fn().mockResolvedValue({ skills: [], error: null }),
+    removeSkills: vi.fn().mockResolvedValue({ skills: [], error: null }),
     onPlan: subscribe("plan"),
     onStart: subscribe("start"),
     onLog: subscribe("log"),

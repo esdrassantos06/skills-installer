@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
 import type { SkillDetail } from "../main/skillDetail";
+import type { InstalledSkill, Removal } from "../main/installedList";
 
 export type LogEvent = { index: number; stream: "out" | "err"; text: string };
 export type StartEvent = { index: number; cmd: string };
@@ -48,6 +49,16 @@ const api = {
     id: string,
   ): Promise<{ detail: SkillDetail | null; error: string | null }> =>
     ipcRenderer.invoke("skill-detail", id),
+
+  listInstalled: (): Promise<{
+    skills: InstalledSkill[];
+    error: string | null;
+  }> => ipcRenderer.invoke("installed-list"),
+
+  removeSkills: (
+    removals: Removal[],
+  ): Promise<{ skills: InstalledSkill[] | null; error: string | null }> =>
+    ipcRenderer.invoke("skills-remove", removals),
 
   onPlan: (cb: (e: PlanEvent) => void) => listen("install:plan", cb),
   onStart: (cb: (e: StartEvent) => void) => listen("install:start", cb),

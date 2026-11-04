@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, Menu, session, shell } from "electron";
 import { spawn } from "node:child_process";
-import { availableParallelism } from "node:os";
+import { mkdtemp, open, readFile, rm } from "node:fs/promises";
+import { availableParallelism, homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseLine, detectAlreadyInstalled } from "./parser";
 import { searchSkills, SkillsApiError, type Skill } from "./skillsApi";
@@ -12,6 +13,14 @@ import { getInstalledSkillNames, shouldSkip } from "./installedSkills";
 import { resolveConcurrency } from "./concurrency";
 import { createLogBuffer } from "./logBuffer";
 import { contentSecurityPolicy } from "./csp";
+import {
+  parseInstalledList,
+  planRemovals,
+  removeArgs,
+  stillInstalled,
+  type InstalledSkill,
+  type Removal,
+} from "./installedList";
 
 export type InstallOptions = {
   agents: string[];
@@ -209,6 +218,24 @@ app.whenReady().then(() => {
     },
   );
 
+  ipcMain.handle(
+    "installed-list",
+    async (): Promise<{ skills: InstalledSkill[]; error: string | null }> => {
+      try {
+        return { skills: await listInstalled(), error: null };
+      } catch (err) {
+        return { skills: [], error: (err as Error).message };
+      }
+    },
+  );
+
+  let removeQueue: Promise<unknown> = Promise.resolve();
+  ipcMain.handle("skills-remove", (_evt, removals: Removal[]) => {
+    const run = removeQueue.then(() => removeSkills(removals));
+    removeQueue = run;
+    return run;
+  });
+
   ipcMain.handle("search-cache-clear", () => {
     searchCache.clear();
     detailCache.clear();
@@ -255,13 +282,7 @@ function runSingle(p: {
     // Run the bundled skills CLI on Electron's own Node (ELECTRON_RUN_AS_NODE),
     // so no system Node/npm is required and no shell is involved.
     const child = spawn(process.execPath, [p.cliPath, ...p.args], {
-      env: {
-        ...process.env,
-        ELECTRON_RUN_AS_NODE: "1",
-        CI: "1",
-        FORCE_COLOR: "0",
-        NO_COLOR: "1",
-      },
+      env: cliEnv(),
       stdio: ["ignore", "pipe", "pipe"],
     });
 
@@ -307,4 +328,90 @@ function runSingle(p: {
       resolve({ code: -1, alreadyInstalled });
     });
   });
+}
+
+function cliEnv(): NodeJS.ProcessEnv {
+  return {
+    ...process.env,
+    ELECTRON_RUN_AS_NODE: "1",
+    CI: "1",
+    FORCE_COLOR: "0",
+    NO_COLOR: "1",
+  };
+}
+
+/**
+ * Runs the bundled skills CLI to completion. Stdout goes to a temp file
+ * because the CLI exits before a piped stdout drains, cutting output at 64 KB.
+ */
+async function runCli(
+  args: string[],
+): Promise<{ code: number; stdout: string; stderr: string }> {
+  const dir = await mkdtemp(join(tmpdir(), "skills-cli-"));
+  const outPath = join(dir, "stdout");
+  const out = await open(outPath, "w");
+  try {
+    const { code, stderr } = await new Promise<{
+      code: number;
+      stderr: string;
+    }>((resolve) => {
+      const child = spawn(
+        process.execPath,
+        [resolveSkillsCliPath(app.getAppPath()), ...args],
+        { cwd: homedir(), env: cliEnv(), stdio: ["ignore", out.fd, "pipe"] },
+      );
+      let stderr = "";
+      child.stderr?.on("data", (d) => (stderr += d.toString()));
+      child.on("close", (c) => resolve({ code: c ?? -1, stderr }));
+      child.on("error", (err) => resolve({ code: -1, stderr: String(err) }));
+    });
+    return { code, stderr, stdout: await readFile(outPath, "utf8") };
+  } finally {
+    await out.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
+function cliError(r: { code: number; stderr: string }, cmd: string): string {
+  return (
+    cleanCliOutput(r.stderr).trim() ||
+    `skills ${cmd} exited with code ${r.code}`
+  );
+}
+
+async function listInstalled(): Promise<InstalledSkill[]> {
+  const r = await runCli(["list", "-g", "--json"]);
+  if (r.code !== 0) throw new Error(cliError(r, "list"));
+  return parseInstalledList(r.stdout);
+}
+
+async function removeSkills(
+  removals: Removal[],
+): Promise<{ skills: InstalledSkill[] | null; error: string | null }> {
+  const errors: string[] = [];
+  try {
+    for (const plan of planRemovals(removals)) {
+      const r = await runCli(removeArgs(plan.names, plan.agentIds));
+      if (r.code !== 0) errors.push(cliError(r, "remove"));
+    }
+  } catch (err) {
+    errors.push((err as Error).message);
+  }
+  try {
+    const skills = await listInstalled();
+    const left = [
+      ...new Set(stillInstalled(skills, removals).map((r) => r.name)),
+    ];
+    if (left.length > 0) {
+      errors.push(
+        `Still installed: ${left.join(", ")}. A shared skill is kept while another agent, such as Claude Code, still links it. Delete it there too.`,
+      );
+    }
+    return { skills, error: errors.join("\n") || null };
+  } catch (err) {
+    return {
+      skills: null,
+      error: [...errors, (err as Error).message].join("\n"),
+    };
+  }
 }
