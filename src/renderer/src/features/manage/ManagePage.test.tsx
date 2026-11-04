@@ -54,7 +54,7 @@ describe("ManagePage", () => {
     render(<ManagePage />);
 
     const header = await screen.findByRole("button", { name: /Shared/ });
-    expect(header).toHaveTextContent("Codex, Cursor");
+    expect(header).toHaveTextContent(/Codex.*Cursor/);
     expect(
       screen.getAllByRole("button", { name: /Shared|Cursor|Codex/ }),
     ).toHaveLength(1);
@@ -109,9 +109,10 @@ describe("ManagePage", () => {
       within(region).getByRole("button", { name: "Confirm delete zeta" }),
     );
 
-    expect(mock.api.removeSkills).toHaveBeenCalledWith([
-      { name: "zeta", agentIds: ["claude-code"] },
-    ]);
+    expect(mock.api.removeSkills).toHaveBeenCalledWith(
+      [{ name: "zeta", agentIds: ["claude-code"] }],
+      null,
+    );
     expect(within(region).queryByText("zeta")).toBeNull();
 
     pending.resolve({
@@ -213,10 +214,13 @@ describe("ManagePage", () => {
       within(bar).getByRole("button", { name: "Confirm delete 2 skills" }),
     );
 
-    expect(mock.api.removeSkills).toHaveBeenCalledWith([
-      { name: "alpha", agentIds: ["claude-code"] },
-      { name: "zeta", agentIds: ["claude-code"] },
-    ]);
+    expect(mock.api.removeSkills).toHaveBeenCalledWith(
+      [
+        { name: "alpha", agentIds: ["claude-code"] },
+        { name: "zeta", agentIds: ["claude-code"] },
+      ],
+      null,
+    );
     expect(screen.queryByRole("button", { name: /Claude Code/ })).toBeNull();
     expect(screen.queryByRole("toolbar", { name: "Selection" })).toBeNull();
 
@@ -230,6 +234,151 @@ describe("ManagePage", () => {
       ).toBeInTheDocument(),
     );
     expect(screen.queryByRole("button", { name: /Claude Code/ })).toBeNull();
+  });
+
+  it("lists global skills by default", async () => {
+    render(<ManagePage />);
+    await screen.findByRole("button", { name: /Claude Code/ });
+    expect(mock.api.listInstalled).toHaveBeenCalledWith(null);
+    expect(screen.getByRole("tab", { name: "Global" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
+
+  it("asks to add a project on the Project tab when none is listed", async () => {
+    render(<ManagePage />);
+    await userEvent.click(screen.getByRole("tab", { name: "Project" }));
+
+    expect(screen.getByText("No projects yet")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add Folder" })).toBeVisible();
+    expect(mock.api.listInstalled).not.toHaveBeenCalledWith(expect.any(String));
+  });
+
+  it("shows one section per project, named after its folder", async () => {
+    vi.mocked(mock.api.chooseFolder)
+      .mockResolvedValueOnce("/work/proj")
+      .mockResolvedValueOnce("/work/other");
+    render(<ManagePage />);
+    await userEvent.click(screen.getByRole("tab", { name: "Project" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add Folder" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Add Folder" }),
+    );
+
+    const proj = await screen.findByRole("button", { name: /^proj/ });
+    expect(proj).toHaveTextContent("/work/proj");
+    expect(proj).toHaveTextContent("3");
+    expect(
+      await screen.findByRole("button", { name: /^other/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Claude Code/ })).toBeNull();
+    expect(mock.api.listInstalled).toHaveBeenCalledWith("/work/proj");
+    expect(mock.api.listInstalled).toHaveBeenCalledWith("/work/other");
+  });
+
+  it("lists a project's skills tagged with their agent and deletes from that project", async () => {
+    vi.mocked(mock.api.chooseFolder).mockResolvedValue("/work/proj");
+    vi.mocked(mock.api.removeSkills).mockResolvedValue({
+      skills: [SKILLS[0]],
+      error: null,
+    });
+    render(<ManagePage />);
+    await userEvent.click(screen.getByRole("tab", { name: "Project" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add Folder" }));
+
+    const region = await openAgent(/^proj/);
+    const rows = within(region).getAllByRole("listitem");
+    expect(rows.map((r) => r.textContent)).toEqual([
+      expect.stringMatching(/alpha.*Claude Code/),
+      expect.stringMatching(/zeta.*Claude Code/),
+      expect.stringMatching(/zeta.*Shared/),
+    ]);
+
+    await userEvent.click(
+      within(rows[0]).getByRole("button", { name: "Delete alpha" }),
+    );
+    await userEvent.click(
+      within(rows[0]).getByRole("button", { name: "Confirm delete alpha" }),
+    );
+    expect(mock.api.removeSkills).toHaveBeenCalledWith(
+      [{ name: "alpha", agentIds: ["claude-code"] }],
+      "/work/proj",
+    );
+  });
+
+  it("takes a project off the list without deleting anything", async () => {
+    vi.mocked(mock.api.chooseFolder).mockResolvedValue("/work/proj");
+    render(<ManagePage />);
+    await userEvent.click(screen.getByRole("tab", { name: "Project" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add Folder" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Remove proj from list" }),
+    );
+
+    expect(screen.queryByRole("button", { name: /^proj/ })).toBeNull();
+    expect(mock.api.removeSkills).not.toHaveBeenCalled();
+    expect(screen.getByText("No projects yet")).toBeInTheDocument();
+  });
+
+  it("focuses the filter with Cmd+J or Ctrl+J", async () => {
+    render(<ManagePage />);
+    await screen.findByRole("button", { name: /Claude Code/ });
+    const filter = screen.getByLabelText("Filter skills");
+
+    await userEvent.keyboard("{Meta>}j{/Meta}");
+    expect(filter).toHaveFocus();
+    filter.blur();
+    await userEvent.keyboard("{Control>}j{/Control}");
+    expect(filter).toHaveFocus();
+  });
+
+  it("drives the selection bar with A, C and D", async () => {
+    render(<ManagePage />);
+    const region = await openAgent(/Claude Code/);
+    const pick = () =>
+      userEvent.click(
+        within(region).getByRole("checkbox", { name: "Select alpha" }),
+      );
+
+    await pick();
+    await userEvent.keyboard("a");
+    expect(
+      screen.getByRole("toolbar", { name: "Selection" }),
+    ).toHaveTextContent("2 selected");
+    await userEvent.keyboard("c");
+    expect(screen.queryByRole("toolbar", { name: "Selection" })).toBeNull();
+
+    await pick();
+    await userEvent.keyboard("d");
+    expect(mock.api.removeSkills).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("button", { name: "Confirm delete 1 skill" }),
+    ).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(
+      screen.getByRole("button", { name: "Delete selected (1)" }),
+    ).toBeInTheDocument();
+    await userEvent.keyboard("d");
+    await userEvent.keyboard("d");
+    expect(mock.api.removeSkills).toHaveBeenCalledWith(
+      [{ name: "alpha", agentIds: ["claude-code"] }],
+      null,
+    );
+  });
+
+  it("ignores the letter shortcuts while typing in the filter", async () => {
+    render(<ManagePage />);
+    const region = await openAgent(/Claude Code/);
+    await userEvent.click(
+      within(region).getByRole("checkbox", { name: "Select alpha" }),
+    );
+    await userEvent.type(screen.getByLabelText("Filter skills"), "acd");
+
+    expect(
+      screen.getByRole("toolbar", { name: "Selection" }),
+    ).toHaveTextContent("1 selected");
+    expect(mock.api.removeSkills).not.toHaveBeenCalled();
   });
 
   it("shows the error when listing fails", async () => {
