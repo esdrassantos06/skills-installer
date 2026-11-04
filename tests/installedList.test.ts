@@ -143,7 +143,9 @@ describe("planRemovals", () => {
 
 describe("removeArgs", () => {
   it("builds a global, non-interactive removal for the given agents", () => {
-    expect(removeArgs(["my-skill", "other"], ["cursor", "codex"])).toEqual([
+    expect(
+      removeArgs(["my-skill", "other"], ["cursor", "codex"], true),
+    ).toEqual([
       "remove",
       "my-skill",
       "other",
@@ -155,20 +157,30 @@ describe("removeArgs", () => {
     ]);
   });
 
+  it("drops -g for a project removal", () => {
+    expect(removeArgs(["x"], ["claude-code"], false)).toEqual([
+      "remove",
+      "x",
+      "-a",
+      "claude-code",
+      "-y",
+    ]);
+  });
+
   it("rejects an empty removal", () => {
-    expect(() => removeArgs([], ["claude-code"])).toThrow();
-    expect(() => removeArgs(["x"], [])).toThrow();
+    expect(() => removeArgs([], ["claude-code"], true)).toThrow();
+    expect(() => removeArgs(["x"], [], true)).toThrow();
   });
 
   it("rejects names and agents that could be read as flags", () => {
-    expect(() => removeArgs(["ok", "--all"], ["claude-code"])).toThrow();
-    expect(() => removeArgs(["x"], ["-g"])).toThrow();
-    expect(() => removeArgs([""], ["claude-code"])).toThrow();
-    expect(() => removeArgs(["x"], ["Claude Code"])).toThrow();
+    expect(() => removeArgs(["ok", "--all"], ["claude-code"], true)).toThrow();
+    expect(() => removeArgs(["x"], ["-g"], true)).toThrow();
+    expect(() => removeArgs([""], ["claude-code"], true)).toThrow();
+    expect(() => removeArgs(["x"], ["Claude Code"], true)).toThrow();
   });
 
   it("allows names with spaces, since no shell is involved", () => {
-    expect(removeArgs(["SVG Logo Designer"], ["cursor"])[1]).toBe(
+    expect(removeArgs(["SVG Logo Designer"], ["cursor"], true)[1]).toBe(
       "SVG Logo Designer",
     );
   });

@@ -1,4 +1,4 @@
-/** One globally installed skill, as reported by `skills list -g --json`. */
+/** One installed skill, as reported by `skills list --json`. */
 export type InstalledSkill = {
   name: string;
   source: string | null;
@@ -149,6 +149,11 @@ export function stillInstalled(
   );
 }
 
+/** Whether the agent ids target agents that read ~/.agents/skills. */
+export function isSharedIds(ids: string[]): boolean {
+  return ids.some((id) => [...UNIVERSAL_AGENTS].some((a) => agentId(a) === id));
+}
+
 /**
  * One CLI call per agent set. Shared copies go last: the CLI keeps a shared
  * folder while another agent (e.g. Claude Code) still links it, so that link
@@ -164,15 +169,20 @@ export function planRemovals(
     plan.names.push(r.name);
     plans.set(key, plan);
   }
-  const isShared = (ids: string[]) =>
-    ids.some((id) => [...UNIVERSAL_AGENTS].some((a) => agentId(a) === id));
   return [...plans.values()].sort(
-    (a, b) => Number(isShared(a.agentIds)) - Number(isShared(b.agentIds)),
+    (a, b) => Number(isSharedIds(a.agentIds)) - Number(isSharedIds(b.agentIds)),
   );
 }
 
-/** CLI args removing global skills from the given agents, rejecting flag-like input. */
-export function removeArgs(names: string[], ids: string[]): string[] {
+/**
+ * CLI args removing skills from the given agents, globally or from the
+ * project the CLI runs in, rejecting flag-like input.
+ */
+export function removeArgs(
+  names: string[],
+  ids: string[],
+  global: boolean,
+): string[] {
   if (names.length === 0 || ids.length === 0) {
     throw new Error("Nothing to remove");
   }
@@ -184,5 +194,5 @@ export function removeArgs(names: string[], ids: string[]): string[] {
     if (!/^[a-z0-9][a-z0-9.-]*$/.test(id))
       throw new Error(`Invalid agent: ${id}`);
   }
-  return ["remove", ...names, "-g", "-a", ...ids, "-y"];
+  return ["remove", ...names, ...(global ? ["-g"] : []), "-a", ...ids, "-y"];
 }
