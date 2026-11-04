@@ -8,6 +8,7 @@ import {
   type SetStateAction,
 } from "react";
 import { FORCE_KEY } from "../../lib/storageKeys";
+import { useProjectFolder } from "../../lib/projectFolder";
 import { parseSkillLines } from "../../lib/lines";
 import { summarizeRuns } from "./runsReducer";
 import { useInstallRuns } from "./useInstallRuns";
@@ -32,7 +33,8 @@ export function Installer({
   const [force, setForce] = useState(
     () => localStorage.getItem(FORCE_KEY) === "1",
   );
-  const { runs, running, summary, start, toggle } = useInstallRuns();
+  const { runs, running, summary, error, start, toggle } = useInstallRuns();
+  const folder = useProjectFolder();
   const autoFollow = useAutoFollow(runs);
   const rootRef = useRef<HTMLDivElement>(null);
   const runRef = useRef<() => void>(() => {});
@@ -47,8 +49,22 @@ export function Installer({
   const run = useCallback(() => {
     if (!parsedLines.length || running) return;
     autoFollow.follow();
-    start(input.split("\n"), { agents, global: true, force });
-  }, [parsedLines.length, running, autoFollow, start, input, agents, force]);
+    start(input.split("\n"), {
+      agents,
+      global: !folder,
+      force,
+      cwd: folder,
+    });
+  }, [
+    parsedLines.length,
+    running,
+    autoFollow,
+    start,
+    input,
+    agents,
+    force,
+    folder,
+  ]);
 
   useEffect(() => {
     runRef.current = run;
@@ -98,6 +114,7 @@ export function Installer({
           force={force}
           setForce={setForce}
           onRun={run}
+          error={error}
         />
         <ExecutionPanel
           runs={runs}

@@ -20,6 +20,7 @@ export type InstallOptions = {
   agents: string[];
   global: boolean;
   force: boolean;
+  cwd: string | null;
 };
 
 export type SearchedSkill = {
@@ -50,15 +51,21 @@ const api = {
   ): Promise<{ detail: SkillDetail | null; error: string | null }> =>
     ipcRenderer.invoke("skill-detail", id),
 
-  listInstalled: (): Promise<{
+  listInstalled: (
+    dir: string | null = null,
+  ): Promise<{
     skills: InstalledSkill[];
     error: string | null;
-  }> => ipcRenderer.invoke("installed-list"),
+  }> => ipcRenderer.invoke("installed-list", dir),
 
   removeSkills: (
     removals: Removal[],
+    dir: string | null = null,
   ): Promise<{ skills: InstalledSkill[] | null; error: string | null }> =>
-    ipcRenderer.invoke("skills-remove", removals),
+    ipcRenderer.invoke("skills-remove", removals, dir),
+
+  chooseFolder: (): Promise<string | null> =>
+    ipcRenderer.invoke("choose-folder"),
 
   onPlan: (cb: (e: PlanEvent) => void) => listen("install:plan", cb),
   onStart: (cb: (e: StartEvent) => void) => listen("install:start", cb),

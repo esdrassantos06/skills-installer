@@ -13,6 +13,7 @@ export function useInstallRuns() {
   const [runs, dispatch] = useReducer(runsReducer, []);
   const [running, setRunning] = useState(false);
   const [summary, setSummary] = useState<FinishedEvent | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const offs = [
@@ -49,8 +50,19 @@ export function useInstallRuns() {
   const start = useCallback(async (lines: string[], opts: InstallOptions) => {
     setRunning(true);
     setSummary(null);
+    setError(null);
     dispatch({ type: "reset" });
-    await window.api.installAll(lines, opts);
+    try {
+      await window.api.installAll(lines, opts);
+    } catch (err) {
+      setError(
+        (err as Error).message.replace(
+          /^Error invoking remote method '[^']+': (Error: )?/,
+          "",
+        ),
+      );
+      setRunning(false);
+    }
   }, []);
 
   const toggle = useCallback(
@@ -58,5 +70,5 @@ export function useInstallRuns() {
     [],
   );
 
-  return { runs, running, summary, start, toggle };
+  return { runs, running, summary, error, start, toggle };
 }

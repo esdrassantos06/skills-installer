@@ -30,6 +30,7 @@ export function createMockApi(): MockApi {
     skillDetail: vi.fn().mockResolvedValue({ detail: null, error: null }),
     listInstalled: vi.fn().mockResolvedValue({ skills: [], error: null }),
     removeSkills: vi.fn().mockResolvedValue({ skills: [], error: null }),
+    chooseFolder: vi.fn().mockResolvedValue(null),
     onPlan: subscribe("plan"),
     onStart: subscribe("start"),
     onLog: subscribe("log"),
