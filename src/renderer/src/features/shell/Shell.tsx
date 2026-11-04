@@ -7,13 +7,15 @@ import { VIEW_KEY, INPUT_KEY } from "../../lib/storageKeys";
 import { closeSkillRoute, useSkillRoute } from "../../lib/route";
 import { Installer } from "../installer/Installer";
 import { SearchPage } from "../search/SearchPage";
+import { ManagePage } from "../manage/ManagePage";
 import { SkillPage } from "../skill/SkillPage";
 
-type View = "installer" | "search";
+type View = "installer" | "search" | "manage";
 
 const TABS: Tab<View>[] = [
   { id: "installer", label: "Installer" },
   { id: "search", label: "Search" },
+  { id: "manage", label: "Manage" },
 ];
 
 export function Shell({
@@ -79,6 +81,16 @@ export function Shell({
         >
           <SearchPage onAddToInstaller={appendSkill} />
         </div>
+        {view === "manage" && !skillId && (
+          <div
+            role="tabpanel"
+            id="panel-manage"
+            aria-labelledby="tab-manage"
+            className="absolute inset-0"
+          >
+            <ManagePage />
+          </div>
+        )}
         {skillId && (
           <div className="absolute inset-0">
             <SkillPage
