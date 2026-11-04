@@ -1,5 +1,6 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
 import { Panel } from "../../components/Panel";
+import { FolderPicker } from "../../components/FolderPicker";
 import { appendUniqueLines } from "../../lib/lines";
 import { modKey } from "../../lib/platform";
 import { PRESETS } from "./presets";
@@ -12,6 +13,7 @@ export function CommandsPanel({
   force,
   setForce,
   onRun,
+  error,
 }: {
   input: string;
   setInput: Dispatch<SetStateAction<string>>;
@@ -20,6 +22,7 @@ export function CommandsPanel({
   force: boolean;
   setForce: Dispatch<SetStateAction<boolean>>;
   onRun: () => void;
+  error: string | null;
 }) {
   function appendPreset(lines: string[]) {
     setInput((cur) => appendUniqueLines(cur, lines));
@@ -95,6 +98,7 @@ anthropics/skills@frontend-design
         <kbd className="rounded border border-border bg-panel px-1.5 py-0.5 text-[10px] text-muted">
           {modKey}↵
         </kbd>
+        <FolderPicker disabled={running} />
         <label className="ml-auto flex cursor-pointer items-center gap-1.5 text-[11px] text-muted">
           <input
             type="checkbox"
@@ -106,6 +110,14 @@ anthropics/skills@frontend-design
           force reinstall
         </label>
       </div>
+      {error && (
+        <div
+          role="alert"
+          className="border-t border-err/40 bg-err/5 px-3 py-2 text-[12px] text-err"
+        >
+          {error}
+        </div>
+      )}
     </Panel>
   );
 }

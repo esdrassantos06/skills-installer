@@ -65,12 +65,14 @@ describe("useInstallRuns", () => {
         agents: ["claude-code"],
         global: true,
         force: false,
+        cwd: null,
       });
     });
     expect(mock.api.installAll).toHaveBeenCalledWith(["a/b@one"], {
       agents: ["claude-code"],
       global: true,
       force: false,
+      cwd: null,
     });
   });
 

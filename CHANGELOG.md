@@ -6,6 +6,9 @@ Notable changes per version. Format based on [Keep a Changelog](https://keepacha
 
 ### Added
 
+- **Manage tab.** Lists installed skills and deletes them, one at a time or in batch, with a confirm step and optimistic updates. The **Global** scope groups skills per agent, with every agent that reads `~/.agents/skills` (Codex, Cursor, Gemini CLI, GitHub Copilot, Antigravity, ...) in one **Shared** section, since they share a single copy. The **Project** scope shows one section per project folder, named after it, with each skill tagged by agent; folders come from the Installer or **Add Folder**, never from scanning the disk.
+- **Install into a project folder.** **Choose Folder** next to Install switches from a global install to a project install in the chosen folder. The titlebar shows the target (`--global` or `cwd=<folder>`), and a folder that no longer exists stops the run instead of installing globally.
+- **Keyboard shortcuts.** `⌘J` / `Ctrl+J` focuses the search field on Search and Manage. With skills selected on Manage, `A` selects all, `C` clears, and `D` deletes (press twice to confirm, `Esc` to cancel).
 - **Skill detail page.** Clicking a skill in Search opens `#/skills/<id>` with installs (total and weekly), topics, summary, security audits, related skills, the install command, and the rendered SKILL.md. GitHub skills also show stars, forks, open issues, watchers, license, language, and last push. Skills published on their own domain (for example `open.feishu.cn`) load their SKILL.md from the site's well-known skills index.
 
 ### Fixed

@@ -1,4 +1,5 @@
 import { Logo } from "../../Logo";
+import { folderName, useProjectFolder } from "../../lib/projectFolder";
 import type { FinishedEvent } from "../../../../preload";
 
 export function InstallerTitlebar({
@@ -18,6 +19,7 @@ export function InstallerTitlebar({
   rememberAgents: boolean;
   onChangeAgents: () => void;
 }) {
+  const folder = useProjectFolder();
   return (
     <header className="titlebar-drag relative flex items-center justify-between border-b border-border px-6 pt-3 pb-3.5 pl-24">
       <div className="min-w-0">
@@ -29,7 +31,15 @@ export function InstallerTitlebar({
           <span className="text-[11px] text-subtle">for Claude Code</span>
         </div>
         <p className="mt-0.5 truncate text-[11.5px] text-muted">
-          <span className="text-accent">--global</span> · agents=
+          {folder ? (
+            <span title={folder}>
+              cwd=
+              <span className="text-accent">{folderName(folder)}</span>
+            </span>
+          ) : (
+            <span className="text-accent">--global</span>
+          )}{" "}
+          · agents=
           <span className="text-accent">{agents.join(",")}</span>
           {rememberAgents ? (
             <span className="text-subtle"> · saved</span>

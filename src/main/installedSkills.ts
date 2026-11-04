@@ -20,7 +20,7 @@ export type Deps = {
   pathExists: (path: string) => boolean | Promise<boolean>;
 };
 
-const defaultDeps: Deps = {
+export const defaultDeps: Deps = {
   homedir: defaultHomedir,
   pathExists: async (path: string) => {
     try {
@@ -32,7 +32,7 @@ const defaultDeps: Deps = {
   },
 };
 
-const INSTALL_DIRS = [
+export const INSTALL_DIRS = [
   ".claude/skills",
   ".cursor/skills",
   ".codex/skills",
