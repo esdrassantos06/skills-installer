@@ -43,7 +43,7 @@
     "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
-    "skills": "1.7.2"
+    "skills": "1.7.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
