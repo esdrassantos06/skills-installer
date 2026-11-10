@@ -48,6 +48,7 @@ export const UNIVERSAL_AGENTS: ReadonlySet<string> = new Set([
   "Sarvam Code",
   "Warp",
   "Zed",
+  "fx",
 ]);
 
 /** Group key of the agents that share ~/.agents/skills. */
